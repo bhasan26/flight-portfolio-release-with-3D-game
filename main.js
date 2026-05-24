@@ -21,28 +21,28 @@ const projectSpecs = {
     title: "Braillience AI",
     details: "An engineered stateful AI voice assistant designed to assist visually impaired students. Utilizes a high-fidelity NLP pipeline to ingest long-form transcripts and compile concise summaries. Improved campus accessibility metrics and increased resource utilization by 60% among targeted student demographics.",
     stack: ["OpenAI API", "Python", "NLP Pipeline", "Speech-to-Text", "Vercel"],
-    github: "https://github.com/bilalhasan"
+    github: "https://github.com/bhasan26"
   },
   flood: {
     badge: "SPEC-02",
     title: "Flood Logistics Optimization",
     details: "Built a linear programming logistics pipeline in Python and SciPy to optimize critical supply distribution routing. Modeled supply, demand, and transport limits via linprog. Performed rigorous doubling experiments validating solver complexity scaling at O(n³) under stress testing.",
     stack: ["Python", "SciPy", "linprog", "Linear Programming", "Mathplotlib"],
-    github: "https://github.com/bilalhasan"
+    github: "https://github.com/bhasan26"
   },
   resumepro: {
     badge: "SPEC-03",
     title: "AI Resume Pro",
     details: "Deployed a full-stack resume analysis suite integrating AI-driven metrics. Developed the parsing architecture in Python, Java, and React to cross-examine CV text against job parameters, yielding real-time suitability reports and development checklists.",
     stack: ["React", "Java", "Python", "OpenAI API", "REST API", "Docker"],
-    github: "https://github.com/bilalhasan"
+    github: "https://github.com/bhasan26"
   },
   autext: {
     badge: "SPEC-04",
     title: "Autext Audiobook Platform",
     details: "Engineered a responsive full-stack audiobook organizer and reader. Features custom narration configurations powered by the Web Speech API and Node.js/Express, enabling users to curate custom audiobook catalog shelves.",
     stack: ["JavaScript", "Node.js", "Express", "Web Speech API", "CSS Grid"],
-    github: "https://github.com/bilalhasan"
+    github: "https://github.com/bhasan26"
   }
 };
 
