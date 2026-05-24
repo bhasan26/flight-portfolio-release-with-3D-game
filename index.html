@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Tags -->
+  <title>Bilal Hasan | Flight Portfolio & Systems Engineer</title>
+  <meta name="description" content="Explore the dynamic 3D aviation-themed software engineering portfolio of Bilal Hasan. Discover projects, technical skills, and career trajectories from Departure to Arrival.">
+  <meta name="author" content="Bilal Hasan">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styling -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="loading-state">
+
+  <!-- Preloader Screen -->
+  <div id="preloader">
+    <div class="preloader-content">
+      <div class="radar-circle">
+        <div class="radar-sweep"></div>
+        <div class="radar-ping"></div>
+      </div>
+      <div class="loading-text-container">
+        <h2 class="fids-font">INITIALIZING SYSTEMS</h2>
+        <p class="mono-font" id="preloader-status">Pre-flight checks: 0%...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Three.js Viewport -->
+  <div id="canvas-container"></div>
+
+  <!-- High-Fidelity Cockpit HUD Overlay -->
+  <div class="hud-overlay" id="hud">
+    
+    <!-- Top Instrument Panel (Autopilot Nav Deck) -->
+    <header class="hud-header glass-card">
+      <div class="hud-brand">
+        <svg class="hud-icon active-glow animate-pulse" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.3-2 1.2-.2.9.3 1.8 1.2 2l8 1.8-3.5 3.5-3.5-1c-.5-.2-1.1.1-1.3.6L3 17l4-1 1 4 2.2-1.2c.5-.3.7-.8.6-1.3l-1-3.5 3.5-3.5 1.8 8c.2.9 1.1 1.4 2 1.2.9-.2 1.4-1.1 1.2-2Z"/>
+        </svg>
+        <div class="brand-text">
+          <span class="hud-label tracking-wide">FLIGHT STATUS</span>
+          <span class="brand-title fids-font text-cyan glow-text" id="flight-status-indicator">BH-2027 ON SCHEDULE</span>
+        </div>
+      </div>
+
+      <nav class="hud-nav mono-font">
+        <button class="nav-btn active" data-section="departure">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 01</span>
+          <span class="nav-text">DEPARTURE</span>
+        </button>
+        <button class="nav-btn" data-section="experience">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 02</span>
+          <span class="nav-text">LOGBOOK</span>
+        </button>
+        <button class="nav-btn" data-section="projects">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 03</span>
+          <span class="nav-text">THE HANGAR</span>
+        </button>
+        <button class="nav-btn" data-section="controls">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 04</span>
+          <span class="nav-text">CONTROLS</span>
+        </button>
+        <button class="nav-btn" data-section="arrival">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 05</span>
+          <span class="nav-text">ARRIVAL</span>
+        </button>
+        
+        <!-- Manual override cockpit switch -->
+        <button class="nav-btn text-amber border-amber" id="game-override-btn" title="Toggle Manual Flight Mode (Game Mode)">
+          <span class="btn-indicator bg-amber"></span>
+          <span class="nav-num">SYS</span>
+          <span class="nav-text">MANUAL FLIGHT</span>
+        </button>
+      </nav>
+
+      <div class="hud-clock mono-font">
+        <div class="clock-top-row">
+          <button id="sound-toggle-btn" class="sound-btn text-muted" title="Mute/Unmute Cockpit Audio">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mute-icon">
+              <path d="M11 5 6 9H2v6h4l5 4V5z"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          </button>
+          <div class="clock-time text-amber glow-amber" id="hud-clock-time">12:00:00 UTC</div>
+        </div>
+        <div class="clock-label">SYSTEM TIME</div>
+      </div>
+    </header>
+
+    <!-- Left HUD Flight Instruments -->
+    <div class="hud-left-instruments mono-font glass-card">
+      <div class="instrument-group">
+        <span class="hud-label text-dim">ALTITUDE</span>
+        <div class="instrument-value"><span id="hud-altitude">0</span> <span class="unit">FT</span></div>
+        <div class="progress-bar-container"><div class="progress-bar-fill bg-cyan" id="hud-altitude-bar"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="instrument-group">
+        <span class="hud-label text-dim">SPEED</span>
+        <div class="instrument-value"><span id="hud-speed">320</span> <span class="unit">KTS</span></div>
+        <div class="progress-bar-container"><div class="progress-bar-fill bg-amber animate-pulse" id="hud-speed-bar"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="instrument-group">
+        <span class="hud-label text-dim">AUTOPILOT</span>
+        <div class="autopilot-status">
+          <span class="indicator-led status-green blink" id="autopilot-led"></span>
+          <span class="status-text glow-text text-green" id="autopilot-status-text">SYS ACTIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right HUD Flight Radar Minimap -->
+    <div class="hud-right-instruments mono-font glass-card">
+      <div class="radar-header">
+        <span class="hud-label">FLIGHT RADAR</span>
+        <span class="radar-coor font-bold" id="radar-coordinates">47.6588° N, 117.4260° W</span>
+      </div>
+      <div class="radar-viewport">
+        <canvas id="radar-canvas"></canvas>
+      </div>
+      <div class="radar-footer">
+        <span class="text-dim">ROUTE PLAN:</span>
+        <span class="text-cyan">GEG ➔ WHITWORTH ➔ SWE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game HUD cockpit telemetry screen (Initially Hidden) -->
+  <div id="game-hud" class="game-hud-overlay mono-font glass-card border-amber">
+    <div class="game-hud-header">
+      <span class="text-amber font-bold glow-amber">// MANUAL OVERRIDE ENGAGED</span>
+      <span class="game-instructions text-dim">STEER: [WASD] or [ARROWS] | EXIT: CLICK MANUAL FLIGHT</span>
+    </div>
+    <div class="game-stats-grid">
+      <div class="stat-box">
+        <span class="hud-label">SCORE</span>
+        <span class="stat-value text-cyan glow-text" id="game-score">0</span>
+      </div>
+      <div class="stat-box">
+        <span class="hud-label">ENERGY</span>
+        <span class="stat-value text-green glow-text" id="game-energy">100%</span>
+      </div>
+      <div class="stat-box">
+        <span class="hud-label">HIGH RECORD</span>
+        <span class="stat-value text-amber glow-amber" id="game-highscore">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Scrollable Content Container -->
+  <main class="scroll-container" id="scroll-main">
+
+    <!-- Section 1: DEPARTURE LOUNGE (Home) -->
+    <section class="portfolio-section" id="departure">
+      <div class="section-content flex-center">
+        <div class="intro-grid">
+          <div class="welcome-block glass-card border-cyan">
+            <span class="terminal-badge bg-cyan text-dark font-bold">TERMINAL A: DEPARTURE</span>
+            <div class="name-display">
+              <h1 class="fids-font title-gradient" id="fids-main-title">BILAL HASAN</h1>
+              <p class="subtitle text-cyan tracking-widest">SOFTWARE ENGINEER & SYSTEMS BUILDER</p>
+            </div>
+            <p class="description max-w-xl">
+              Spokane-based Computer Science student at Whitworth University. Dedicated to engineering high-performance systems, linear logistics pipelines, and AI-integrated accessibility tooling.
+            </p>
+            
+            <div class="departure-actions">
+              <button class="btn btn-primary" onclick="document.getElementById('experience').scrollIntoView({behavior: 'smooth'})">
+                <span>PULL DOWN TO TAKEOFF</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M19 12l-7 7-7-7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Boarding Pass Resume Card -->
+          <div class="boarding-pass glass-card border-amber">
+            <div class="boarding-header">
+              <div class="carrier-logo">
+                <span class="fids-font text-amber">HASAN AIRWAYS</span>
+              </div>
+              <div class="ticket-class font-bold">FIRST CLASS / BOARDING PASS</div>
+            </div>
+            <div class="boarding-body mono-font">
+              <div class="pass-row">
+                <div class="pass-col col-6">
+                  <span class="label text-dim">PASSENGER NAME</span>
+                  <span class="val font-bold">HASAN, BILAL</span>
+                </div>
+                <div class="pass-col col-6 text-right">
+                  <span class="label text-dim">BOARDING GATE</span>
+                  <span class="val font-bold text-amber glow-amber">GATE C-27</span>
+                </div>
+              </div>
+              <div class="pass-row flight-path-row">
+                <div class="airport-code">
+                  <span class="code font-extrabold text-cyan">GEG</span>
+                  <span class="city text-dim">SPOKANE</span>
+                </div>
+                <div class="flight-icon-container">
+                  <div class="dot"></div>
+                  <div class="line"></div>
+                  <svg class="plane-flight-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.9-.2-1.8.3-2 1.2-.2.9.3 1.8 1.2 2l8 1.8-3.5 3.5-3.5-1c-.5-.2-1.1.1-1.3.6L3 17l4-1 1 4 2.2-1.2c.5-.3.7-.8.6-1.3l-1-3.5 3.5-3.5 1.8 8c.2.9 1.1 1.4 2 1.2.9-.2 1.4-1.1 1.2-2Z"/>
+                  </svg>
+                  <div class="line"></div>
+                  <div class="dot"></div>
+                </div>
+                <div class="airport-code text-right">
+                  <span class="code font-extrabold text-amber">SWE</span>
+                  <span class="city text-dim">ENGINEER</span>
+                </div>
+              </div>
+              <div class="pass-row">
+                <div class="pass-col col-4">
+                  <span class="label text-dim">SEAT</span>
+                  <span class="val font-bold">1A (DEV)</span>
+                </div>
+                <div class="pass-col col-4">
+                  <span class="label text-dim">CLASS</span>
+                  <span class="val font-bold">CS / B.S.</span>
+                </div>
+                <div class="pass-col col-4 text-right">
+                  <span class="label text-dim">DEPARTURE</span>
+                  <span class="val font-bold text-green">AUG 2023</span>
+                </div>
+              </div>
+            </div>
+            <div class="boarding-barcode-container">
+              <button onclick="window.print()" class="resume-download-btn bg-amber text-dark font-bold">
+                <span>PRINT CV TICKET</span>
+              </button>
+              <div class="barcode">
+                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Section 2: LOGBOOK (Experience) -->
+    <section class="portfolio-section" id="experience">
+      <div class="section-content">
+        <div class="section-header">
+          <span class="section-tag text-cyan font-bold mono-font">// FLIGHT LOG</span>
+          <h2 class="fids-font section-title text-glow">PROFESSIONAL TRAJECTORY</h2>
+        </div>
+        
+        <div class="timeline-container">
+          <!-- Timeline Line -->
+          <div class="timeline-line"></div>
+          
+          <!-- Experience Item 1 -->
+          <div class="timeline-item glass-card border-left-cyan animate-on-scroll">
+            <div class="timeline-radar-blip bg-cyan"></div>
+            <div class="timeline-meta mono-font">
+              <span class="timeline-date bg-cyan text-dark font-bold">MAY 2025 – DEC 2025</span>
+              <span class="timeline-location text-dim">Spokane, WA</span>
+            </div>
+            <div class="timeline-info">
+              <h3 class="role-title">Software Engineering Intern</h3>
+              <h4 class="company-name text-cyan">Kaiser Aluminum</h4>
+              <ul class="timeline-bullets">
+                <li>Developed an end-to-end Python automation pipeline for data auditing and user-group management, eliminating manual workflows across 5,000+ endpoints and reducing troubleshooting time by 30%.</li>
+                <li>Built a full-stack order-latency analytics system using Python and SQL to identify bottlenecks in order workflows, improving customer on-time delivery rates by 15%.</li>
+                <li>Engineered Python-based network diagnostic tools to monitor and audit endpoint health across a 5,000+ device enterprise network, improving infrastructure reliability by 20%.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Experience Item 2 -->
+          <div class="timeline-item glass-card border-left-amber animate-on-scroll">
+            <div class="timeline-radar-blip bg-amber"></div>
+            <div class="timeline-meta mono-font">
+              <span class="timeline-date bg-amber text-dark font-bold">JAN 2024 – PRESENT</span>
+              <span class="timeline-location text-dim">Spokane, WA</span>
+            </div>
+            <div class="timeline-info">
+              <h3 class="role-title">Information Technology Support Assistant</h3>
+              <h4 class="company-name text-amber">Whitworth University</h4>
+              <ul class="timeline-bullets">
+                <li>Diagnosed and rectified an average of 12 student and faculty computer hardware and software malfunctions daily, ensuring minimal impact on academic activities and campus productivity.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: THE HANGAR (Projects) -->
+    <section class="portfolio-section" id="projects">
+      <div class="section-content">
+        <div class="section-header">
+          <span class="section-tag text-amber font-bold mono-font">// SYSTEMS HANGAR</span>
+          <h2 class="fids-font section-title text-glow">ENGINEERED BLUEPRINTS</h2>
+        </div>
+
+        <div class="projects-grid">
+          
+          <!-- Project 1: Braillience -->
+          <div class="project-blueprint-card glass-card animate-on-scroll" data-project="braillience">
+            <div class="blueprint-lines"></div>
+            <div class="project-header">
+              <span class="spec-number mono-font">SPEC-01</span>
+              <h3 class="project-title">Braillience</h3>
+            </div>
+            <p class="project-desc line-clamp-3">Stateful AI voice assistant increasing usage among visually impaired students by 60% and improving accessibility to educational resources on campus.</p>
+            <div class="project-tags mono-font">
+              <span>OpenAI API</span>
+              <span>NLP Pipeline</span>
+              <span>Speech-to-Text</span>
+            </div>
+            <button class="project-inspect-btn text-cyan font-bold mono-font">
+              <span>INSPECT SPECIFICATIONS ➔</span>
+            </button>
+          </div>
+
+          <!-- Project 2: Flood Relief Optimization -->
+          <div class="project-blueprint-card glass-card animate-on-scroll" data-project="flood">
+            <div class="blueprint-lines"></div>
+            <div class="project-header">
+              <span class="spec-number mono-font">SPEC-02</span>
+              <h3 class="project-title">Flood Logistics</h3>
+            </div>
+            <p class="project-desc line-clamp-3">Linear programming optimization pipeline in Python and SciPy routing supplies from regional warehouses to flood-impacted communities, minimizing total distribution costs.</p>
+            <div class="project-tags mono-font">
+              <span>Python</span>
+              <span>SciPy</span>
+              <span>Linear Programming</span>
+            </div>
+            <button class="project-inspect-btn text-cyan font-bold mono-font">
+              <span>INSPECT SPECIFICATIONS ➔</span>
+            </button>
+          </div>
+
+          <!-- Project 3: AI Resume Pro -->
+          <div class="project-blueprint-card glass-card animate-on-scroll" data-project="resumepro">
+            <div class="blueprint-lines"></div>
+            <div class="project-header">
+              <span class="spec-number mono-font">SPEC-03</span>
+              <h3 class="project-title">AI Resume Pro</h3>
+            </div>
+            <p class="project-desc line-clamp-3">Full-stack web application leveraging AI-driven analysis to score resumes against job descriptions, providing real-time compatibility metrics.</p>
+            <div class="project-tags mono-font">
+              <span>React</span>
+              <span>Python</span>
+              <span>Java</span>
+              <span>OpenAI</span>
+            </div>
+            <button class="project-inspect-btn text-cyan font-bold mono-font">
+              <span>INSPECT SPECIFICATIONS ➔</span>
+            </button>
+          </div>
+
+          <!-- Project 4: Autext -->
+          <div class="project-blueprint-card glass-card animate-on-scroll" data-project="autext">
+            <div class="blueprint-lines"></div>
+            <div class="project-header">
+              <span class="spec-number mono-font">SPEC-04</span>
+              <h3 class="project-title">Autext</h3>
+            </div>
+            <p class="project-desc line-clamp-3">Full-stack text-to-speech application enabling users to generate and organize custom audiobook libraries with customizable voice settings.</p>
+            <div class="project-tags mono-font">
+              <span>Node.js</span>
+              <span>Express</span>
+              <span>JavaScript</span>
+              <span>Web Speech API</span>
+            </div>
+            <button class="project-inspect-btn text-cyan font-bold mono-font">
+              <span>INSPECT SPECIFICATIONS ➔</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: CONTROL TOWER (Skills & Leadership) -->
+    <section class="portfolio-section" id="controls">
+      <div class="section-content">
+        <div class="section-header">
+          <span class="section-tag text-cyan font-bold mono-font">// SYSTEMS CONSOLE</span>
+          <h2 class="fids-font section-title text-glow">CONTROL SYSTEMS & CRITICAL SYSTEMS</h2>
+        </div>
+
+        <div class="controls-grid">
+          
+          <!-- Skill Dashboard Group -->
+          <div class="skills-dashboard glass-card animate-on-scroll">
+            <h3 class="panel-subtitle fids-font text-cyan">// SYSTEMS COMPETENCY TELEMETRY</h3>
+            
+            <div class="skills-categories">
+              <!-- Languages -->
+              <div class="skills-cat">
+                <span class="cat-label text-dim mono-font">CORE LANGUAGES</span>
+                <div class="tags-group">
+                  <span class="badge badge-outline">Java</span>
+                  <span class="badge badge-outline">Python</span>
+                  <span class="badge badge-outline">C++</span>
+                  <span class="badge badge-outline">SQL</span>
+                  <span class="badge badge-outline">JavaScript</span>
+                  <span class="badge badge-outline">TypeScript</span>
+                  <span class="badge badge-outline">C#</span>
+                  <span class="badge badge-outline">Swift</span>
+                </div>
+              </div>
+
+              <!-- Frameworks -->
+              <div class="skills-cat">
+                <span class="cat-label text-dim mono-font">FRAMEWORKS & ENGINES</span>
+                <div class="tags-group">
+                  <span class="badge badge-outline">React</span>
+                  <span class="badge badge-outline">Node.js</span>
+                  <span class="badge badge-outline">Flask</span>
+                  <span class="badge badge-outline">FastAPI</span>
+                  <span class="badge badge-outline">Angular</span>
+                  <span class="badge badge-outline">.NET</span>
+                  <span class="badge badge-outline">REST APIs</span>
+                </div>
+              </div>
+
+              <!-- Developer Tools -->
+              <div class="skills-cat">
+                <span class="cat-label text-dim mono-font">INFRASTRUCTURE & ENVIRONMENT</span>
+                <div class="tags-group">
+                  <span class="badge badge-outline">Git</span>
+                  <span class="badge badge-outline">Docker</span>
+                  <span class="badge badge-outline">AWS</span>
+                  <span class="badge badge-outline">Azure</span>
+                  <span class="badge badge-outline">Google Cloud</span>
+                  <span class="badge badge-outline">Linux (Ubuntu)</span>
+                  <span class="badge badge-outline">CI/CD</span>
+                  <span class="badge badge-outline">Wireshark</span>
+                </div>
+              </div>
+
+              <!-- ML/AI -->
+              <div class="skills-cat">
+                <span class="cat-label text-dim mono-font">ML / AI / ANALYTICS</span>
+                <div class="tags-group">
+                  <span class="badge badge-outline">PyTorch</span>
+                  <span class="badge badge-outline">TensorFlow</span>
+                  <span class="badge badge-outline">LangChain</span>
+                  <span class="badge badge-outline">LangGraph</span>
+                  <span class="badge badge-outline">RAG Architecture</span>
+                  <span class="badge badge-outline">pandas</span>
+                  <span class="badge badge-outline">NumPy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flight Leadership Telemetry -->
+          <div class="leadership-dashboard glass-card border-amber animate-on-scroll">
+            <h3 class="panel-subtitle fids-font text-amber">// LEADERSHIP FLIGHT COMMAND</h3>
+            
+            <div class="leadership-cards">
+              <div class="lead-item glass-card-inset">
+                <div class="lead-header">
+                  <span class="lead-logo text-amber font-bold fids-font">GDG</span>
+                  <h4 class="lead-role">Google Developer Group On-Campus Lead</h4>
+                </div>
+                <p class="lead-text text-dim">Led workshops on Google technologies, Machine Learning, Deep Learning, and AI. Spearheaded organization of 3 hackathons and catalyzed developer community expansion on campus.</p>
+              </div>
+
+              <div class="lead-item glass-card-inset">
+                <div class="lead-header">
+                  <span class="lead-logo text-cyan font-bold fids-font">WHIT</span>
+                  <h4 class="lead-role">President of Whitcode Club</h4>
+                </div>
+                <p class="lead-text text-dim">Facilitated campus workshops covering state-of-the-art Machine Learning algorithms, product development pipelines, and collaborative software projects.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: ARRIVAL TERMINAL (Contact) -->
+    <section class="portfolio-section" id="arrival">
+      <div class="section-content">
+        <div class="section-header">
+          <span class="section-tag text-green font-bold mono-font">// SAFE LANDING</span>
+          <h2 class="fids-font section-title text-glow">ARRIVAL TERMINAL & COMMUNICATIONS</h2>
+        </div>
+
+        <div class="arrival-layout">
+          <!-- Contact Card -->
+          <div class="contact-details glass-card animate-on-scroll">
+            <h3 class="fids-font text-cyan">// PORT FLIGHT COORDINATES</h3>
+            <p class="text-dim mb-6">File a flight path or connect directly for software engineering collaborations, internships, and technical projects.</p>
+            
+            <div class="coordinate-list mono-font">
+              <div class="coord-item">
+                <span class="label text-dim">TELEPHONE :</span>
+                <a href="tel:509-701-7561" class="val text-cyan glow-text">509-701-7561</a>
+              </div>
+              <div class="coord-item">
+                <span class="label text-dim">EMAILPORT :</span>
+                <a href="mailto:bhasan26@icloud.com" class="val text-cyan glow-text">bhasan26@icloud.com</a>
+              </div>
+              <div class="coord-item">
+                <span class="label text-dim">LINKEDIN :</span>
+                <a href="https://linkedin.com" target="_blank" class="val text-amber glow-amber">linkedin.com/in/bilalhasan</a>
+              </div>
+              <div class="coord-item">
+                <span class="label text-dim">GITHUBPORT:</span>
+                <a href="https://github.com" target="_blank" class="val text-green glow-text">github.com/bilalhasan</a>
+              </div>
+            </div>
+            
+            <div class="passport-stamp text-glow-green">
+              <div class="stamp-border">
+                <div class="stamp-inner">
+                  <span class="fids-font">PASSED</span>
+                  <span class="stamp-date mono-font">MAY 2027</span>
+                  <span class="mono-font">SPOKANE, WA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message Form (Customs Form) -->
+          <div class="customs-form-card glass-card border-green animate-on-scroll">
+            <div class="form-header border-bottom-green">
+              <span class="fids-font text-green">CUSTOMS & COMMUNICATIONS DECLARATION</span>
+              <span class="form-sub mono-font">FORM: COMM-2026-BH</span>
+            </div>
+            <form id="customs-contact-form" class="mono-font">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label for="passenger-name" class="text-dim">PASSENGER NAME / FROM</label>
+                  <input type="text" id="passenger-name" placeholder="Enter your full name" required class="glass-input">
+                </div>
+                <div class="form-group col-6">
+                  <label for="passenger-email" class="text-dim">COORDINATION EMAIL</label>
+                  <input type="email" id="passenger-email" placeholder="Enter your email port" required class="glass-input">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cargo-manifest" class="text-dim">COMMUNICATION MANIFEST / MESSAGE</label>
+                <textarea id="cargo-manifest" rows="5" placeholder="Declare your messages, projects, or inquiries here..." required class="glass-input"></textarea>
+              </div>
+              <button type="submit" class="form-submit-btn bg-green text-dark font-extrabold">
+                <span>SUBMIT CUSTOMS DECLARATION</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Printable Resume for direct PDF exports (only visible via @media print) -->
+  <div id="print-resume" class="print-only">
+    <div class="print-header">
+      <h1>BILAL HASAN</h1>
+      <div class="print-contact">
+        <span>509-701-7561</span> | 
+        <span>bhasan26@icloud.com</span> | 
+        <span>LinkedIn: linkedin.com/in/bilalhasan</span> | 
+        <span>GitHub: github.com/bilalhasan</span>
+      </div>
+    </div>
+
+    <div class="print-section">
+      <h2 class="print-section-title">EDUCATION</h2>
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Whitworth University</strong>
+          <span>Spokane, WA</span>
+        </div>
+        <div class="print-item-sub">
+          <span>Bachelor of Science in Computer Science</span>
+          <span>Aug. 2023 – May 2027</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="print-section">
+      <h2 class="print-section-title">EXPERIENCE</h2>
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Kaiser Aluminum</strong>
+          <span>Spokane, WA</span>
+        </div>
+        <div class="print-item-sub">
+          <span>Software Engineering Intern</span>
+          <span>May 2025 – Dec. 2025</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Developed an end-to-end Python automation pipeline for data auditing and user-group management, eliminating manual workflows across 5,000+ endpoints and reducing troubleshooting time by 30%.</li>
+          <li>Built a full-stack order-latency analytics system using Python and SQL to identify bottlenecks in order workflows, improving customer on-time delivery rates by 15%.</li>
+          <li>Engineered Python-based network diagnostic tools to monitor and audit endpoint health across a 5,000+ device enterprise network, improving infrastructure reliability by 20%.</li>
+        </ul>
+      </div>
+
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Whitworth University</strong>
+          <span>Spokane, WA</span>
+        </div>
+        <div class="print-item-sub">
+          <span>Information Technology Support Assistant</span>
+          <span>Jan. 2024 – Present</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Diagnosed and rectified an average of 12 student and faculty computer hardware and software malfunctions daily, ensuring minimal impact on academic activities and campus productivity.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="print-section">
+      <h2 class="print-section-title">PROJECTS</h2>
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Braillience (AI Voice Assistant)</strong>
+          <span>GitHub Repo</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Spearheaded development of a stateful AI voice assistant, increasing usage among visually impaired students by 60% and improving accessibility to educational resources on campus.</li>
+          <li>Engineered an NLP pipeline using the OpenAI API to analyze and condense long-form lecture transcripts into concise, study-ready summaries.</li>
+        </ul>
+      </div>
+
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Flood Relief Logistics Optimization</strong>
+          <span>GitHub Repo</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Built a linear programming pipeline in Python and SciPy to optimize supply routing from regional warehouses to flood-impacted communities, minimizing total distribution cost.</li>
+          <li>Modeled supply, demand, and transportation constraints using linprog and validated solver complexity through empirical doubling experiments, confirming O(n³) performance.</li>
+        </ul>
+      </div>
+
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>AI Resume Pro</strong>
+          <span>GitHub Repo</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Deployed a full-stack web application that leverages AI-driven analysis to score resumes against job descriptions, providing real-time compatibility metrics.</li>
+          <li>Developed the system using Python, Java, and React, supporting file uploads, dynamic resume parsing, and real-time job description matching.</li>
+          <li>Integrated the OpenAI API to generate detailed scoring, feedback, and improvement reports for users.</li>
+        </ul>
+      </div>
+
+      <div class="print-item">
+        <div class="print-item-header">
+          <strong>Autext</strong>
+          <span>GitHub Repo</span>
+        </div>
+        <ul class="print-bullets">
+          <li>Built a full-stack text-to-speech application using JavaScript, Node.js/Express, and the Web Speech API, enabling users to generate and organize custom audiobook libraries with customizable voice settings.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="print-section">
+      <h2 class="print-section-title">TECHNICAL SKILLS</h2>
+      <table class="print-skills-table">
+        <tr>
+          <td><strong>Languages:</strong></td>
+          <td>Java, Python, C++, SQL, JavaScript, TypeScript, HTML/CSS, R, C#, Swift</td>
+        </tr>
+        <tr>
+          <td><strong>Frameworks:</strong></td>
+          <td>React, Node.js, Flask, FastAPI, Angular, .NET, JUnit, REST APIs, Microservices</td>
+        </tr>
+        <tr>
+          <td><strong>Tools/databases:</strong></td>
+          <td>Git, Docker, AWS, Azure, Google Cloud, MySQL, MongoDB, PostgreSQL, CI/CD, Figma</td>
+        </tr>
+        <tr>
+          <td><strong>ML/AI:</strong></td>
+          <td>PyTorch, TensorFlow, LangChain, LangGraph, RAG, XGBoost, pandas, NumPy, Transformers</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="print-section">
+      <h2 class="print-section-title">LEADERSHIP</h2>
+      <div class="print-item">
+        <strong>GDG On-Campus Lead: Google Developer Group</strong>
+        <p class="print-lead-text">Led workshops on Google technologies for ML, Deep Learning, and AI; organized 3 hackathons and expanded developer community.</p>
+      </div>
+      <div class="print-item" style="margin-top: 6px;">
+        <strong>President Whitcode Club</strong>
+        <p class="print-lead-text">Led workshops on Machine Learning and product building.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Blueprint Details Modal (Floating Cockpit Overlay) -->
+  <div id="project-modal" class="modal-overlay">
+    <div class="modal-card glass-card border-cyan">
+      <div class="modal-lines"></div>
+      <button class="modal-close-btn text-cyan fids-font" id="close-modal-btn">X</button>
+      <div class="modal-header">
+        <span class="modal-badge mono-font text-cyan border-cyan" id="modal-project-badge">SPEC-00</span>
+        <h2 class="fids-font" id="modal-project-title">PROJECT SPECIFICATIONS</h2>
+      </div>
+      <div class="modal-body mono-font">
+        <div class="modal-spec-grid">
+          <div class="spec-left">
+            <h4 class="text-cyan">// DESIGN DETAILS</h4>
+            <div id="modal-project-details" class="text-dim">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <div class="spec-right">
+            <h4 class="text-amber">// INTEGRATION STACK</h4>
+            <div id="modal-project-stack" class="tags-group">
+              <!-- Dynamically populated -->
+            </div>
+            
+            <div class="modal-links-section">
+              <a href="#" target="_blank" id="modal-project-github" class="btn btn-secondary text-cyan">
+                <span>GITHUB REPOSITORY</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lucide Script CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Main Scripts -->
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
