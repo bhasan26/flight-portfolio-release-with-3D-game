@@ -23,18 +23,18 @@ const projectSpecs = {
     stack: ["OpenAI API", "Python", "NLP Pipeline", "Speech-to-Text", "Vercel"],
     github: "https://github.com/bhasan26"
   },
-  flood: {
+  cricketcoach: {
     badge: "SPEC-02",
-    title: "Flood Logistics Optimization",
-    details: "Built a linear programming logistics pipeline in Python and SciPy to optimize critical supply distribution routing. Modeled supply, demand, and transport limits via linprog. Performed rigorous doubling experiments validating solver complexity scaling at O(n³) under stress testing.",
-    stack: ["Python", "SciPy", "linprog", "Linear Programming", "Mathplotlib"],
-    github: "https://github.com/bhasan26"
+    title: "cricketcoach.online",
+    details: "A specialized sports analytics portal focused on cricket technique analysis. Uses computer vision and machine learning models to analyze bowling actions and batting styles, providing automated feedback to players.",
+    stack: ["Python", "Machine Learning", "Computer Vision", "Web Deployment"],
+    github: "https://github.com/bhasan26/cricket-shadow-coach"
   },
-  resumepro: {
+  ersimulator: {
     badge: "SPEC-03",
-    title: "AI Resume Pro",
-    details: "Deployed a full-stack resume analysis suite integrating AI-driven metrics. Developed the parsing architecture in Python, Java, and React to cross-examine CV text against job parameters, yielding real-time suitability reports and development checklists.",
-    stack: ["React", "Java", "Python", "OpenAI API", "REST API", "Docker"],
+    title: "Emergency Room Simulator",
+    details: "A backend simulation system modeling real-time patient care priority and hospital workflow. Prioritizes incoming patient care using custom queue structures and tracks real-time performance and bottleneck metrics.",
+    stack: ["C++", "Python", "SQL"],
     github: "https://github.com/bhasan26"
   },
   autext: {
@@ -43,6 +43,22 @@ const projectSpecs = {
     details: "Engineered a responsive full-stack audiobook organizer and reader. Features custom narration configurations powered by the Web Speech API and Node.js/Express, enabling users to curate custom audiobook catalog shelves.",
     stack: ["JavaScript", "Node.js", "Express", "Web Speech API", "CSS Grid"],
     github: "https://github.com/bhasan26"
+  },
+  whitworthian: {
+    badge: "SPEC-05",
+    title: "NWC Basketball Feature",
+    details: `<div class="article-preview-container"><img class="article-preview-image" src="https://thewhitworthian.news/wp-content/uploads/2026/03/IMG_8330.jpg" alt="Whitworth Basketball" /><blockquote class="article-quote">"The Northwest Conference (NWC) tournament is just around the corner, and the Whitworth men’s basketball team is focused and has one goal: to bring the trophy home. The Whitworth Pirates are currently ranked first heading into the tournament after winning the regular season NWC title..."</blockquote><p class="article-meta-info">Published in <strong>The Whitworthian</strong> &bull; March 2026</p></div>`,
+    stack: ["Journalism", "Sports Writing", "Editorial"],
+    github: "https://thewhitworthian.news/20482/sports/eyes-on-the-prize-pirates-eye-the-nwc-title-after-regular-season-success/",
+    buttonText: "READ FULL ARTICLE"
+  },
+  gdg: {
+    badge: "SPEC-06",
+    title: "GDG on Campus",
+    details: `<div class="article-preview-container"><blockquote class="article-quote">"Selected to lead the student developer community on campus, organizing technical workshops, speaker events, and collaborative hackathons. Facilitate hands-on learning experiences to help peers build impactful software, focusing on emerging tools like the Gemini API, Cloud architectures, and AI voice agents."</blockquote><p class="article-meta-info">Founder & Organizer &bull; Whitworth University</p></div>`,
+    stack: ["Community", "Google Cloud", "Gemini API", "AI Voice Agents"],
+    github: "https://gdg.community.dev/gdg-on-campus-whitworth-university/",
+    buttonText: "VISIT COMMUNITY HUB"
   }
 };
 
@@ -253,10 +269,8 @@ function setupClock() {
   
   function updateTime() {
     const now = new Date();
-    const hrs = String(now.getUTCHours()).padStart(2, '0');
-    const mins = String(now.getUTCMinutes()).padStart(2, '0');
-    const secs = String(now.getUTCSeconds()).padStart(2, '0');
-    clockEl.textContent = `${hrs}:${mins}:${secs} UTC`;
+    const pacificTimeStr = now.toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    clockEl.textContent = `${pacificTimeStr} PT`;
   }
   
   updateTime();
@@ -495,7 +509,7 @@ function setupProjectModals() {
       if (specs) {
         modalBadge.textContent = specs.badge;
         modalTitle.textContent = specs.title.toUpperCase();
-        modalDetails.textContent = specs.details;
+        modalDetails.innerHTML = specs.details;
         
         modalStack.innerHTML = "";
         specs.stack.forEach(tech => {
@@ -506,6 +520,10 @@ function setupProjectModals() {
         });
         
         modalGithub.href = specs.github;
+        const buttonSpan = modalGithub.querySelector('span');
+        if (buttonSpan) {
+          buttonSpan.textContent = specs.buttonText || "GITHUB REPOSITORY";
+        }
         
         modal.classList.add('active');
         flipText(modalTitle, specs.title);
@@ -553,7 +571,7 @@ function setupContactForm() {
     // E.g. fetch('https://formspree.io/f/YOUR_FORM_ID', { ... })
     const mockFormspreeId = "xovqdbyq"; // Place private ID token here to activate direct mailing
     
-    fetch(`https://formspree.io/f/${mockFormspreeId}`, {
+    fetch('https://formspree.io/khanjames160@gmail.com', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
