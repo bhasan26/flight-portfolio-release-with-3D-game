@@ -140,15 +140,20 @@ const storySpecs = {
 
 // 1. Initialize systems when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  setupPreloader();
-  setupClock();
-  setupRadar();
-  setupFidsAnimations();
-  setupProjectModals();
-  setupStoryModals();
-  setupContactForm();
-  setupAudioSynth();
-  setupHighScoreDisplay();
+  // Run each system independently — one throwing (e.g. a hidden canvas on mobile)
+  // must never prevent the rest of the page's interactivity from initializing.
+  const systems = [
+    setupPreloader, setupClock, setupRadar, setupFidsAnimations,
+    setupProjectModals, setupStoryModals, setupContactForm,
+    setupAudioSynth, setupHighScoreDisplay
+  ];
+  systems.forEach(fn => {
+    try {
+      fn();
+    } catch (err) {
+      console.error(`Init failed for ${fn.name}:`, err);
+    }
+  });
 });
 
 // 2. Preloader Animation Sequence
@@ -398,12 +403,19 @@ function setupRadar() {
   let sweepAngle = 0;
   
   function drawRadar() {
+    // Radar's parent is hidden (display:none) on tablets/phones, which collapses
+    // the canvas to 0x0 and makes maxRadius negative — skip drawing until it's visible again.
+    if (canvas.width <= 0 || canvas.height <= 0) {
+      requestAnimationFrame(drawRadar);
+      return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const maxRadius = Math.min(centerX, centerY) - 10;
-    
+
     // Concentric sweep rings
     ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
     ctx.lineWidth = 1;
