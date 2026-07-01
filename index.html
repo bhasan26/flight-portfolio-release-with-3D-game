@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
+  <!-- Security hardening -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://thewhitworthian.news; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'; upgrade-insecure-requests">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
   <!-- SEO Tags -->
   <title>Bilal Hasan | Flight Portfolio & Systems Engineer</title>
   <meta name="description" content="Explore the dynamic 3D aviation-themed software engineering portfolio of Bilal Hasan. Discover projects, technical skills, and career trajectories from Departure to Arrival.">
@@ -81,14 +86,19 @@
           <span class="nav-num">NAV 03</span>
           <span class="nav-text">THE HANGAR</span>
         </button>
-        <button class="nav-btn" data-section="controls">
+        <button class="nav-btn" data-section="stories">
           <span class="btn-indicator"></span>
           <span class="nav-num">NAV 04</span>
+          <span class="nav-text">STORIES</span>
+        </button>
+        <button class="nav-btn" data-section="controls">
+          <span class="btn-indicator"></span>
+          <span class="nav-num">NAV 05</span>
           <span class="nav-text">CONTROLS</span>
         </button>
         <button class="nav-btn" data-section="arrival">
           <span class="btn-indicator"></span>
-          <span class="nav-num">NAV 05</span>
+          <span class="nav-num">NAV 06</span>
           <span class="nav-text">ARRIVAL</span>
         </button>
         
@@ -99,6 +109,14 @@
           <span class="nav-text">MANUAL FLIGHT</span>
         </button>
       </nav>
+
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Toggle navigation menu" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
 
       <div class="hud-clock mono-font">
         <div class="clock-top-row">
@@ -257,7 +275,7 @@
               </div>
             </div>
             <div class="boarding-barcode-container">
-              <a href="/Bilal_Hasan_Resume.pdf" target="_blank" class="resume-download-btn bg-amber text-dark font-bold" style="display: inline-block; text-decoration: none;">
+              <a href="/Bilal_Hasan_Resume.pdf" target="_blank" rel="noopener noreferrer" class="resume-download-btn bg-amber text-dark font-bold" style="display: inline-block; text-decoration: none;">
                 <span>PRINT CV TICKET</span>
               </a>
               <div class="barcode">
@@ -549,7 +567,7 @@
               <h3 class="project-title">Sports Journalism Feature</h3>
             </div>
             <p class="project-desc line-clamp-3">Published sports journalism article covering the Whitworth Pirates men's basketball team and their regular-season NWC championship run.</p>
-            <a href="https://thewhitworthian.news/20482/sports/eyes-on-the-prize-pirates-eye-the-nwc-title-after-regular-season-success/" target="_blank" class="link-preview-box" onclick="event.stopPropagation()">
+            <a href="https://thewhitworthian.news/20482/sports/eyes-on-the-prize-pirates-eye-the-nwc-title-after-regular-season-success/" target="_blank" rel="noopener noreferrer" class="link-preview-box" onclick="event.stopPropagation()">
               <div class="link-preview-header">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 <span>The Whitworthian</span>
@@ -586,7 +604,7 @@
               <h3 class="project-title">GDG on Campus</h3>
             </div>
             <p class="project-desc line-clamp-3">Lead student developer community organizing workshops, hackathons, and speaker events focused on emerging Google technologies.</p>
-            <a href="https://gdg.community.dev/gdg-on-campus-whitworth-university/" target="_blank" class="link-preview-box" onclick="event.stopPropagation()">
+            <a href="https://gdg.community.dev/gdg-on-campus-whitworth-university/" target="_blank" rel="noopener noreferrer" class="link-preview-box" onclick="event.stopPropagation()">
               <div class="link-preview-header">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><path d="M12 22V12"/></svg>
                 <span>GDG on Campus</span>
@@ -616,6 +634,71 @@
           </div>
 
 
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3.5: STORIES (Blog / Flight Journal) -->
+    <section class="portfolio-section" id="stories">
+      <div class="section-content">
+        <div class="section-header">
+          <span class="section-tag text-cyan font-bold mono-font">// FLIGHT JOURNAL</span>
+          <h2 class="fids-font section-title text-glow">STORIES & DISPATCHES</h2>
+        </div>
+
+        <div class="stories-grid">
+
+          <!-- Story 1 -->
+          <div class="story-card glass-card animate-on-scroll" data-story="gdg-year-one">
+            <div class="story-cover" style="background-image: url('/stories/gdg-certificate.png');"></div>
+            <div class="story-card-body">
+              <span class="story-date mono-font text-cyan">APR 2026</span>
+              <h3 class="story-title">One Year Running GDG on Campus</h3>
+              <p class="story-excerpt line-clamp-3">Reflections on a year of organizing workshops and hackathons for the campus developer community, and what I learned about building one from scratch.</p>
+              <div class="story-tags mono-font">
+                <span>Community</span>
+                <span>Leadership</span>
+              </div>
+              <button class="story-read-btn text-cyan font-bold mono-font">
+                <span>READ STORY ➔</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Story 2: Google I/O -->
+          <div class="story-card glass-card animate-on-scroll" data-story="google-io-2026">
+            <div class="story-cover" style="background-image: url('/stories/io-group.jpg');"></div>
+            <div class="story-card-body">
+              <span class="story-date mono-font text-cyan">MAY 2026</span>
+              <h3 class="story-title">On the Ground at Google I/O 2026</h3>
+              <p class="story-excerpt line-clamp-3">Flew out to Shoreline for Google I/O with the GDG crew — keynotes, the developer lounge, and a few too many propeller hats.</p>
+              <div class="story-tags mono-font">
+                <span>Google I/O</span>
+                <span>Travel</span>
+              </div>
+              <button class="story-read-btn text-cyan font-bold mono-font">
+                <span>READ STORY ➔</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Story 3: Whitworth Summer Research -->
+          <div class="story-card glass-card animate-on-scroll" data-story="whitworth-hof">
+            <div class="story-cover" style="background-image: url('/stories/whitworth-hof.png');"></div>
+            <div class="story-card-body">
+              <span class="story-date mono-font text-cyan">JUL 2026</span>
+              <h3 class="story-title">Summer Research: Building the Whitworth Heritage Gallery</h3>
+              <p class="story-excerpt line-clamp-3">Spent the summer doing research at Whitworth and shipped a full site for the Athletics Hall of Fame — digitizing decades of inductee records into a searchable gallery.</p>
+              <div class="story-tags mono-font">
+                <span>Research</span>
+                <span>Web Dev</span>
+              </div>
+              <button class="story-read-btn text-cyan font-bold mono-font">
+                <span>READ STORY ➔</span>
+              </button>
+            </div>
+          </div>
 
         </div>
       </div>
@@ -745,11 +828,11 @@
               </div>
               <div class="coord-item">
                 <span class="label text-dim">LINKEDIN :</span>
-                <a href="https://www.linkedin.com/in/bhasan26/" target="_blank" class="val text-amber glow-amber">linkedin.com/in/bhasan26</a>
+                <a href="https://www.linkedin.com/in/bhasan26/" target="_blank" rel="noopener noreferrer" class="val text-amber glow-amber">linkedin.com/in/bhasan26</a>
               </div>
               <div class="coord-item">
                 <span class="label text-dim">GITHUBPORT:</span>
-                <a href="https://github.com/bhasan26" target="_blank" class="val text-green glow-text">github.com/bhasan26</a>
+                <a href="https://github.com/bhasan26" target="_blank" rel="noopener noreferrer" class="val text-green glow-text">github.com/bhasan26</a>
               </div>
             </div>
             
@@ -1051,11 +1134,33 @@
             </div>
             
             <div class="modal-links-section">
-              <a href="#" target="_blank" id="modal-project-github" class="btn btn-secondary text-cyan">
+              <a href="#" target="_blank" rel="noopener noreferrer" id="modal-project-github" class="btn btn-secondary text-cyan">
                 <span>GITHUB REPOSITORY</span>
               </a>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="story-modal" class="modal-overlay">
+    <div class="modal-card story-modal-card glass-card border-cyan">
+      <div class="modal-lines"></div>
+      <button class="modal-close-btn text-cyan fids-font" id="close-story-modal-btn">X</button>
+      <div class="story-modal-cover placeholder-cover" id="modal-story-cover">
+        <span class="placeholder-icon mono-font" id="modal-story-icon">✈</span>
+      </div>
+      <div class="modal-header">
+        <span class="modal-badge mono-font text-cyan border-cyan" id="modal-story-date">JUN 2026</span>
+        <h2 class="fids-font" id="modal-story-title">STORY TITLE</h2>
+      </div>
+      <div class="modal-body mono-font">
+        <div id="modal-story-body" class="text-dim story-modal-text">
+          <!-- Dynamically populated -->
+        </div>
+        <div class="story-tags mono-font" id="modal-story-tags" style="margin-top: 20px;">
+          <!-- Dynamically populated -->
         </div>
       </div>
     </div>

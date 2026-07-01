@@ -62,6 +62,82 @@ const projectSpecs = {
   }
 };
 
+// Stories Database (Flight Journal / Blog)
+// To publish a new story: add an entry here keyed by a unique slug, then add a
+// matching .story-card block in index.html (inside #stories .stories-grid) with
+// data-story="<slug>" pointing at this key. Drop a cover image in public/stories/
+// and reference it via the `cover` field, or omit it to use the placeholder icon.
+const storySpecs = {
+  "gdg-year-one": {
+    date: "APR 2026",
+    title: "One Year Running GDG on Campus",
+    icon: "●",
+    cover: "/stories/gdg-certificate.png",
+    body: `<p>A year ago I had a Slack channel and an idea. Now GDG on Campus runs regular workshops, a hackathon, and a speaker series built around the Gemini API and cloud architecture.</p><p>The biggest lesson: community momentum comes from consistency, not big launches. Showing up every two weeks beat any single flashy event.</p>`,
+    tags: ["Community", "Leadership"]
+  },
+  "google-io-2026": {
+    date: "MAY 2026",
+    title: "On the Ground at Google I/O 2026",
+    icon: "✈",
+    cover: "/stories/io-group.jpg",
+    body: `<p>Flew out to Shoreline Amphitheatre with the rest of the GDG on Campus crew for Google I/O 2026 — a full day of keynotes, sessions, and wandering the developer lounge between talks.</p>
+      <div class="story-photo-float">
+        <div class="float-photo float-1"><img src="/stories/io-group.jpg" alt="GDG on Campus group at Google I/O 2026" /></div>
+        <div class="float-photo float-2"><img src="/stories/io-solo.jpg" alt="Standing under the Google I/O sign" /></div>
+        <div class="float-photo float-3"><img src="/stories/io-lounge.jpg" alt="The developer lounge at Google I/O" /></div>
+        <div class="float-photo float-4"><img src="/stories/io-bike.jpg" alt="Riding a Google campus bike" /></div>
+      </div>
+      <p>Highlight of the trip was rolling around the Google campus on one of their classic four-color bikes between sessions — propeller hat included. Good reminder that the best conferences leave room for the in-between moments, not just the stage time.</p>
+
+      <h4 class="text-cyan">🚀 The Core Theme: The "Agentic" Shift</h4>
+      <p>Sundar Pichai noted that Google is entering a period of "hyper-progress." The major takeaway is the transition from static chat tools to autonomous background agents.</p>
+
+      <h4 class="text-cyan">🧠 Next-Gen Models</h4>
+      <ul>
+        <li><strong>Gemini 3.5 Flash:</strong> Generally available at launch, this model is built specifically for long-horizon agentic workflows (rapid planning, codebase maintenance, and data auditing). It rivaled flagship models on coding benchmarks like Terminal-Bench 2.1 but at a fraction of the speed and cost.</li>
+        <li><strong>Gemini Omni:</strong> A new multimodal frontier model capable of handling any input to create any output, deeply integrated with natural conversational editing.</li>
+        <li><strong>Gemini 3.5 Pro:</strong> Teased as coming later this summer.</li>
+      </ul>
+
+      <h4 class="text-cyan">🔍 The Biggest Search Redesign in 25 Years</h4>
+      <p>Google Search received a massive overhaul aimed at keeping you within the Google ecosystem rather than navigating to external URLs:</p>
+      <ul>
+        <li><strong>Intelligent AI Search Box:</strong> You can now drop images, videos, full files, and even live Chrome tabs directly alongside a natural language prompt.</li>
+        <li><strong>Conversational AI Overviews:</strong> Turns standard summaries into back-and-forth chatbot exchanges natively inside the search results.</li>
+        <li><strong>Search Agents (Gemini Spark):</strong> A massive feature for AI Pro and Ultra subscribers. These background agents track complex web workflows — like monitoring flat listings or sneaker drops — and can even make background phone calls to businesses on your behalf.</li>
+      </ul>
+
+      <h4 class="text-cyan">💻 Major Developer Announcements</h4>
+      <p>If your blog caters to devs, this was arguably the most practical section of the keynote:</p>
+      <ul>
+        <li><strong>Google Antigravity 2.0:</strong> Google's agent-first development platform and new CLI allow devs to orchestrate and spin up sandboxed "subagents" to write, migrate, and optimize full codebases safely.</li>
+        <li><strong>Vibe Coding in AI Studio:</strong> You can now natively vibe code Android apps inside Google AI Studio with native Kotlin support, one-click deployments to Cloud Run, and full export capabilities to Antigravity.</li>
+        <li><strong>Android Migration Agent:</strong> A killer tool previewed for Android Studio that can take code written in iOS, React Native, or web frameworks and automatically migrate it to native Kotlin in hours instead of weeks.</li>
+        <li><strong>WebMCP:</strong> A newly proposed open web standard that exposes structured tools (like JavaScript functions and HTML forms) so browser-based AI agents can execute complex tasks precisely.</li>
+      </ul>
+
+      <h4 class="text-cyan">🎛️ Hardware & Product Ecosystem Highlights</h4>
+      <ul>
+        <li><strong>Android XR & Smart Glasses:</strong> Google teased the consumer arrival of Android XR headsets coming this fall, alongside a preview of Google Audio Glasses (intelligent eyewear for real-time text, navigation, and capturing media without pulling out a phone).</li>
+        <li><strong>Universal Cart:</strong> The foundation for agentic commerce — a unified smart shopping cart that scours availability, live prices, and handles multi-site checkout automatically.</li>
+        <li><strong>Google Flow & Flow Music:</strong> Significant upgrades to their creative collaborator toolkits, giving creators full AI orchestration capabilities.</li>
+      </ul>`,
+    tags: ["Google I/O", "Travel", "Gemini", "Agentic AI"]
+  },
+  "whitworth-hof": {
+    date: "JUL 2026",
+    title: "Summer Research: Building the Whitworth Heritage Gallery",
+    icon: "◈",
+    cover: "/stories/whitworth-hof.png",
+    body: `<p>Spent this summer on a research appointment at Whitworth University building out the digital home for the Whitworth Heritage Gallery — the university's athletics Hall of Fame, honoring the 100+ athletes, coaches, and staff inducted since 1990.</p>
+      <p>The project meant digitizing decades of physical inductee records — yearbook photos, newspaper clippings, plaque scans — into a searchable, browsable gallery, and building a clean front end for it: a home page with recent inductees, a full Hall of Fame directory, and coach/about pages.</p>
+      <p>Biggest challenge wasn't the code, it was the archive work: normalizing inconsistent decades-old source material (scanned clippings, yearbook portraits, printed certificates) into a coherent, presentable format without losing the historical character of the originals.</p>
+      <p>Live at <a href="https://whitworthathleticshof.whitworth.edu/" target="_blank" rel="noopener noreferrer" class="text-cyan">whitworthathleticshof.whitworth.edu</a>.</p>`,
+    tags: ["Research", "Web Dev", "Whitworth"]
+  }
+};
+
 // 1. Initialize systems when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   setupPreloader();
@@ -69,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRadar();
   setupFidsAnimations();
   setupProjectModals();
+  setupStoryModals();
   setupContactForm();
   setupAudioSynth();
   setupHighScoreDisplay();
@@ -135,28 +212,43 @@ function setupScrollControls() {
   const altitudeBar = document.getElementById('hud-altitude-bar');
   const speedVal = document.getElementById('hud-speed');
   const speedBar = document.getElementById('hud-speed-bar');
-  
+
   const maxAltitude = 27000;
-  
+
+  // Mobile hamburger nav toggle
+  const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+  const hudNav = document.querySelector('.hud-nav');
+  if (mobileNavToggle && hudNav) {
+    mobileNavToggle.addEventListener('click', () => {
+      const isOpen = hudNav.classList.toggle('mobile-open');
+      mobileNavToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+  }
+
   // Bind Nav click triggers
   navButtons.forEach(btn => {
     // Exclude manual flight button from standard nav scrolling
     if (btn.id === 'game-override-btn') return;
-    
+
     btn.addEventListener('click', (e) => {
       // Ignore if manual flight mode is active
       if (threeSceneInstance && threeSceneInstance.gameActive) return;
-      
+
       playSynthAudio('click');
-      
+
       const targetSectionId = btn.getAttribute('data-section');
       const targetSection = document.getElementById(targetSectionId);
-      
+
       if (targetSection) {
         targetSection.scrollIntoView({ behavior: 'smooth' });
       }
+
+      if (hudNav && mobileNavToggle) {
+        hudNav.classList.remove('mobile-open');
+        mobileNavToggle.setAttribute('aria-expanded', 'false');
+      }
     });
-    
+
     btn.addEventListener('mouseenter', () => {
       if (threeSceneInstance && threeSceneInstance.gameActive) return;
       playSynthAudio('hover');
@@ -191,7 +283,7 @@ function setupScrollControls() {
     targetAirspeed = 320 + Math.min(scrollDelta * 6, 260);
     
     // 3. Highlight current active section HUD button
-    const sections = ['departure', 'experience', 'projects', 'controls', 'arrival'];
+    const sections = ['departure', 'experience', 'projects', 'stories', 'controls', 'arrival'];
     let currentActive = 'departure';
     
     const viewportHeight = window.innerHeight;
@@ -235,6 +327,9 @@ function setupScrollControls() {
       } else if (activeSection === 'projects') {
         statusIndicator.textContent = "HANGAR GATES OPEN";
         statusIndicator.className = "brand-title fids-font text-amber glow-amber";
+      } else if (activeSection === 'stories') {
+        statusIndicator.textContent = "FLIGHT JOURNAL OPEN";
+        statusIndicator.className = "brand-title fids-font text-cyan glow-text";
       } else if (activeSection === 'controls') {
         statusIndicator.textContent = "AUTOPILOT COCKPIT";
         statusIndicator.className = "brand-title fids-font text-cyan glow-text";
@@ -548,6 +643,69 @@ function setupProjectModals() {
   });
 }
 
+// 7b. Flight Journal Modals (Stories / Blog)
+function setupStoryModals() {
+  const storyCards = document.querySelectorAll('.story-card');
+  const modal = document.getElementById('story-modal');
+  const closeModalBtn = document.getElementById('close-story-modal-btn');
+
+  const modalDate = document.getElementById('modal-story-date');
+  const modalTitle = document.getElementById('modal-story-title');
+  const modalBody = document.getElementById('modal-story-body');
+  const modalTags = document.getElementById('modal-story-tags');
+  const modalCover = document.getElementById('modal-story-cover');
+  const modalIcon = document.getElementById('modal-story-icon');
+
+  storyCards.forEach(card => {
+    card.addEventListener('click', () => {
+      playSynthAudio('click');
+      const storyId = card.getAttribute('data-story');
+      const story = storySpecs[storyId];
+
+      if (story) {
+        modalDate.textContent = story.date;
+        modalTitle.textContent = story.title.toUpperCase();
+        modalBody.innerHTML = story.body;
+
+        modalTags.innerHTML = "";
+        story.tags.forEach(tag => {
+          const b = document.createElement('span');
+          b.textContent = tag;
+          modalTags.appendChild(b);
+        });
+
+        if (story.cover) {
+          modalCover.style.backgroundImage = `url('${story.cover}')`;
+          modalIcon.style.display = 'none';
+        } else {
+          modalCover.style.backgroundImage = 'none';
+          modalIcon.style.display = 'block';
+          modalIcon.textContent = story.icon || '✈';
+        }
+
+        modal.classList.add('active');
+        flipText(modalTitle, story.title.toUpperCase());
+      }
+    });
+
+    card.addEventListener('mouseenter', () => {
+      playSynthAudio('hover');
+    });
+  });
+
+  closeModalBtn.addEventListener('click', () => {
+    playSynthAudio('click');
+    modal.classList.remove('active');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      playSynthAudio('click');
+      modal.classList.remove('active');
+    }
+  });
+}
+
 // 8. Customs Form submission with mock Formspree routing API
 function setupContactForm() {
   const form = document.getElementById('customs-contact-form');
@@ -567,20 +725,19 @@ function setupContactForm() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = "<span>TRANSMITTING TELEMETRY...</span>";
     
-    // Formspree API Integration (Replace YOUR_FORM_ID with real Formspree endpoint ID)
-    // E.g. fetch('https://formspree.io/f/YOUR_FORM_ID', { ... })
-    const mockFormspreeId = "xovqdbyq"; // Place private ID token here to activate direct mailing
-    
-    fetch('https://formspree.io/khanjames160@gmail.com', {
+    const formspreeFormId = "xovqdbyq";
+
+    fetch(`https://formspree.io/f/${formspreeFormId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         name: passengerName,
         email: passengerEmail,
         message: cargoManifest
       })
     })
-    .then(() => {
+    .then((res) => {
+      if (!res.ok) throw new Error(`Formspree responded with ${res.status}`);
       submitBtn.className = "form-submit-btn bg-cyan text-dark font-extrabold";
       submitBtn.innerHTML = "<span>TRANSMISSION SUCCESSFUL ✓</span>";
       
