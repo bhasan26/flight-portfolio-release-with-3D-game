@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Security hardening -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://thewhitworthian.news; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'; upgrade-insecure-requests">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -13,6 +13,10 @@
   <title>Bilal Hasan | Flight Portfolio & Systems Engineer</title>
   <meta name="description" content="Explore the dynamic 3D aviation-themed software engineering portfolio of Bilal Hasan. Discover projects, technical skills, and career trajectories from Departure to Arrival.">
   <meta name="author" content="Bilal Hasan">
+  <link rel="canonical" href="https://bilal-swe.vercel.app/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
   <!-- Google Search Console verification -->
   <meta name="google-site-verification" content="oLkl2stXUZ7z60udGtdeMzvYLugOqltptH5ocmDrgQM" />
@@ -38,6 +42,26 @@
   
   <!-- Styling -->
   <link rel="stylesheet" href="/style.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Bilal Hasan",
+    "url": "https://bilal-swe.vercel.app/",
+    "jobTitle": "Software Engineer",
+    "affiliation": {
+      "@type": "CollegeOrUniversity",
+      "name": "Whitworth University"
+    },
+    "knowsAbout": ["Backend Development", "Artificial Intelligence", "Multimodal Voice Agents", "Sports Analytics"],
+    "sameAs": [
+      "https://www.linkedin.com/in/bhasan26/",
+      "https://github.com/bhasan26"
+    ]
+  }
+  </script>
 </head>
 <body class="loading-state">
 
@@ -211,7 +235,7 @@
               <p class="subtitle text-cyan tracking-widest">SOFTWARE ENGINEER & SYSTEMS BUILDER</p>
             </div>
             <p class="description max-w-xl">
-              Spokane-based Computer Science student in the **George F. Whitworth Honors Program** at Whitworth University. Interested in Backend Development, Artificial Intelligence, Multimodal Voice Agents, and Sports Analytics.
+              Spokane-based Computer Science student in the <strong>George F. Whitworth Honors Program</strong> at Whitworth University. Interested in Backend Development, Artificial Intelligence, Multimodal Voice Agents, and Sports Analytics.
             </p>
             
             <div class="departure-actions">
@@ -577,7 +601,7 @@
               </div>
               <div class="link-preview-body">
                 <div class="link-preview-image-container">
-                  <img class="link-preview-image" src="https://thewhitworthian.news/wp-content/uploads/2023/11/Whitworthian-Editable-Scalable-Logo-70x70.jpg" alt="The Whitworthian" />
+                  <img class="link-preview-image" src="/whitworthian-logo.jpg" alt="The Whitworthian" />
                 </div>
                 <div class="link-preview-content">
                   <div class="link-preview-title">Eyes on the prize: Pirates eye the NWC title after regular season success</div>
@@ -1169,9 +1193,6 @@
     </div>
   </div>
 
-  <!-- Lucide Script CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
   <!-- Main Scripts -->
   <script type="module" src="/main.js"></script>
 </body>

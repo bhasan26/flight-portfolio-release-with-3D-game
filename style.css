@@ -2142,3 +2142,20 @@ textarea.glass-input {
 
 
 
+
+/* ==========================================
+   REDUCED MOTION
+   Stills decorative CSS animation (radar sweeps, pulses, blinks)
+   for users with an OS-level reduced-motion preference. The JS
+   counterparts are gated in main.js / three-scene.js.
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

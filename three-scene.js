@@ -10,6 +10,11 @@ export class ThreeScene {
     this.width = this.container.clientWidth;
     this.height = this.container.clientHeight;
     
+    // Respect OS-level reduced-motion preference: ambient motion (turbulence,
+    // star rotation, cloud drift, gate spin) is stilled; scroll-linked plane
+    // movement and explicit game mode remain since those are user-initiated.
+    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Flight path parameters
     this.scrollProgress = 0;
     this.planeTargetX = 0;
@@ -505,15 +510,17 @@ export class ThreeScene {
     
     const time = timestamp * 0.001 || 0;
     
+    const ambientMotion = !this.reducedMotion || this.gameActive;
+
     // 1. Slow cosmic background space rotation
-    if (this.starPoints) {
+    if (this.starPoints && ambientMotion) {
       this.starPoints.rotation.y = time * 0.005;
       this.starPoints.rotation.x = time * 0.002;
     }
-    
+
     // 2. Micro-turbulence wiggle inside the airplane cockpit
-    let turbulenceX = Math.sin(time * 5.0) * 0.04;
-    let turbulenceY = Math.cos(time * 6.0) * 0.04;
+    let turbulenceX = ambientMotion ? Math.sin(time * 5.0) * 0.04 : 0;
+    let turbulenceY = ambientMotion ? Math.cos(time * 6.0) * 0.04 : 0;
     
     // Plane steering calculations
     if (this.planeGroup) {
@@ -663,15 +670,15 @@ export class ThreeScene {
       }
     }
     
-    // 4. Cloud particle floating simulation (always run)
-    const baseSpeed = 0.15;
+    // 4. Cloud particle floating simulation (stilled under reduced motion)
+    const baseSpeed = ambientMotion ? 0.15 : 0;
     const scrollInducedSpeed = Math.abs(this.planeTargetX - (this.planeGroup ? this.planeGroup.position.x : 0)) * 2;
     const finalSpeed = baseSpeed + scrollInducedSpeed;
     
     this.clouds.forEach(cloud => {
       cloud.position.z += cloud.userData.speedZ * finalSpeed * 2;
       const offset = cloud.userData.wiggleOffset;
-      cloud.position.y += Math.sin(time + offset) * 0.005;
+      if (ambientMotion) cloud.position.y += Math.sin(time + offset) * 0.005;
       
       if (this.planeGroup && cloud.position.z > this.planeGroup.position.z + 20) {
         cloud.position.z = this.planeGroup.position.z - 150;
@@ -682,7 +689,7 @@ export class ThreeScene {
     });
     
     // 5. Gate rotations (only spin when game is off)
-    if (!this.gameActive) {
+    if (!this.gameActive && ambientMotion) {
       this.gates.forEach((gate, idx) => {
         gate.rotation.z = time * (0.05 + idx * 0.02);
       });

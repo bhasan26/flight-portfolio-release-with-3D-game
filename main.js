@@ -1,6 +1,7 @@
 import { ThreeScene } from './three-scene.js';
 
 // Global instances
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let threeSceneInstance = null;
 let activeSection = 'departure';
 let lastScrollTop = 0;
@@ -21,7 +22,8 @@ const projectSpecs = {
     title: "Braillience AI",
     details: "An engineered stateful AI voice assistant designed to assist visually impaired students. Utilizes a high-fidelity NLP pipeline to ingest long-form transcripts and compile concise summaries. Improved campus accessibility metrics and increased resource utilization by 60% among targeted student demographics.",
     stack: ["OpenAI API", "Python", "NLP Pipeline", "Speech-to-Text", "Vercel"],
-    github: "https://github.com/bhasan26"
+    github: "https://github.com/bhasan26",
+    buttonText: "VIEW GITHUB PROFILE"
   },
   cricketcoach: {
     badge: "SPEC-02",
@@ -35,19 +37,20 @@ const projectSpecs = {
     title: "Emergency Room Simulator",
     details: "A backend simulation system modeling real-time patient care priority and hospital workflow. Prioritizes incoming patient care using custom queue structures and tracks real-time performance and bottleneck metrics.",
     stack: ["C++", "Python", "SQL"],
-    github: "https://github.com/bhasan26"
+    github: "https://github.com/bhasan26",
+    buttonText: "VIEW GITHUB PROFILE"
   },
   autext: {
     badge: "SPEC-04",
     title: "Autext Audiobook Platform",
     details: "Engineered a responsive full-stack audiobook organizer and reader. Features custom narration configurations powered by the Web Speech API and Node.js/Express, enabling users to curate custom audiobook catalog shelves.",
     stack: ["JavaScript", "Node.js", "Express", "Web Speech API", "CSS Grid"],
-    github: "https://github.com/bhasan26"
+    github: "https://github.com/bhasan26/Text-to-audio"
   },
   whitworthian: {
     badge: "SPEC-05",
     title: "NWC Basketball Feature",
-    details: `<div class="article-preview-container"><img class="article-preview-image" src="https://thewhitworthian.news/wp-content/uploads/2026/03/IMG_8330.jpg" alt="Whitworth Basketball" /><blockquote class="article-quote">"The Northwest Conference (NWC) tournament is just around the corner, and the Whitworth men’s basketball team is focused and has one goal: to bring the trophy home. The Whitworth Pirates are currently ranked first heading into the tournament after winning the regular season NWC title..."</blockquote><p class="article-meta-info">Published in <strong>The Whitworthian</strong> &bull; March 2026</p></div>`,
+    details: `<div class="article-preview-container"><img class="article-preview-image" src="/whitworthian-basketball.jpg" alt="Whitworth Basketball" /><blockquote class="article-quote">"The Northwest Conference (NWC) tournament is just around the corner, and the Whitworth men’s basketball team is focused and has one goal: to bring the trophy home. The Whitworth Pirates are currently ranked first heading into the tournament after winning the regular season NWC title..."</blockquote><p class="article-meta-info">Published in <strong>The Whitworthian</strong> &bull; March 2026</p></div>`,
     stack: ["Journalism", "Sports Writing", "Editorial"],
     github: "https://thewhitworthian.news/20482/sports/eyes-on-the-prize-pirates-eye-the-nwc-title-after-regular-season-success/",
     buttonText: "READ FULL ARTICLE"
@@ -532,8 +535,8 @@ function setupRadar() {
     ctx.fill();
     ctx.restore();
     
-    sweepAngle += 0.015;
-    
+    if (!prefersReducedMotion) sweepAngle += 0.015;
+
     requestAnimationFrame(drawRadar);
   }
   
@@ -542,8 +545,10 @@ function setupRadar() {
 
 // 6. FIDS Scrambled Flip board
 function setupFidsAnimations() {
+  if (prefersReducedMotion) return; // Titles render as plain text, no scramble effect
+
   const targets = document.querySelectorAll('.animate-on-scroll .role-title, .animate-on-scroll .company-name');
-  
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
