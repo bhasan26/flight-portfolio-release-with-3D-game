@@ -174,6 +174,14 @@
         <div class="progress-bar-container"><div class="progress-bar-fill bg-amber animate-pulse" id="hud-speed-bar"></div></div>
       </div>
       <div class="divider"></div>
+      <!-- Engine N1 reads real GitHub commit activity (see scripts/fetch-github.js) -->
+      <div class="instrument-group">
+        <span class="hud-label text-dim">ENGINE N1</span>
+        <div class="instrument-value"><span id="hud-engine">--</span> <span class="unit">%</span></div>
+        <div class="progress-bar-container"><div class="progress-bar-fill bg-green" id="hud-engine-bar"></div></div>
+        <span class="instrument-sub mono-font" id="hud-engine-sub">AWAITING FEED</span>
+      </div>
+      <div class="divider"></div>
       <div class="instrument-group">
         <span class="hud-label text-dim">AUTOPILOT</span>
         <div class="autopilot-status">
@@ -824,6 +832,50 @@
                 <p class="lead-text text-dim">Spearheaded local fundraising campaigns to secure quality educational opportunities for children (August 2022 – November 2022).</p>
               </div>
             </div>
+          </div>
+
+          <!-- Live GitHub telemetry — populated from github-stats.json by main.js -->
+          <div class="telemetry-dashboard glass-card border-green animate-on-scroll" id="gh-telemetry">
+            <h3 class="panel-subtitle fids-font text-green">// POWERPLANT TELEMETRY &mdash; LIVE ENGINE FEED</h3>
+
+            <div class="telemetry-grid mono-font">
+              <div class="telemetry-stat glass-card-inset">
+                <span class="cat-label text-dim">COMMITS / 7D</span>
+                <span class="telemetry-value text-green glow-green" id="gh-commits-7d">--</span>
+              </div>
+              <div class="telemetry-stat glass-card-inset">
+                <span class="cat-label text-dim">COMMITS / 30D</span>
+                <span class="telemetry-value text-cyan glow-text" id="gh-commits-30d">--</span>
+              </div>
+              <div class="telemetry-stat glass-card-inset">
+                <span class="cat-label text-dim">ACTIVE REPOS</span>
+                <span class="telemetry-value text-amber glow-amber" id="gh-active-repos">--</span>
+              </div>
+              <div class="telemetry-stat glass-card-inset">
+                <span class="cat-label text-dim">ACTIVE DAYS</span>
+                <span class="telemetry-value text-cyan glow-text" id="gh-streak">--</span>
+              </div>
+            </div>
+
+            <div class="telemetry-chart">
+              <span class="cat-label text-dim mono-font">THRUST HISTORY &mdash; COMMITS PER WEEK</span>
+              <div class="spark-bars" id="gh-sparkline" role="img" aria-label="Weekly commit activity"></div>
+            </div>
+
+            <div class="telemetry-langs">
+              <span class="cat-label text-dim mono-font">PRIMARY FUEL MIX</span>
+              <div class="tags-group" id="gh-languages"></div>
+            </div>
+
+            <div class="telemetry-footer mono-font">
+              <span class="text-dim">PUBLIC REPOS <strong class="text-cyan" id="gh-public-repos">--</strong></span>
+              <span class="text-dim">STARS <strong class="text-amber" id="gh-stars">--</strong></span>
+              <span class="text-dim">LAST PUSH <strong class="text-green" id="gh-last-push">--</strong></span>
+            </div>
+
+            <p class="telemetry-note mono-font text-dim" id="gh-note">
+              Read from the public GitHub API at build time.
+            </p>
           </div>
 
         </div>

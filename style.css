@@ -324,6 +324,12 @@ body.loading-state {
   transition: width 0.3s cubic-bezier(0.1, 0.8, 0.2, 1);
 }
 
+.instrument-sub {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
 .divider {
   width: 100%;
   height: 1px;
@@ -1153,6 +1159,124 @@ body.loading-state {
 .cat-label {
   font-size: 9px;
   letter-spacing: 0.1em;
+}
+
+/* ==========================================================================
+   POWERPLANT TELEMETRY (live GitHub feed)
+   ========================================================================== */
+
+.telemetry-dashboard {
+  grid-column: 1 / -1;
+  padding: 28px;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.telemetry-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.telemetry-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.telemetry-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.spark-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 72px;
+  padding: 8px 10px;
+  background: rgba(4, 8, 18, 0.6);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+}
+
+.spark-bar {
+  flex: 1;
+  /* Without a cap, four weekly bars stretch to ~220px each on desktop and read
+     as blocks rather than a gauge trace. */
+  max-width: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  min-width: 0;
+}
+
+.spark-bar .spark-fill {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, var(--green), rgba(34, 197, 94, 0.25));
+  transition: height 0.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* Most recent week reads as the live one */
+.spark-bar:last-child .spark-fill {
+  background: linear-gradient(180deg, var(--cyan), rgba(0, 255, 255, 0.25));
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+}
+
+.spark-bar .spark-label {
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.telemetry-langs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.telemetry-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-glass);
+}
+
+.telemetry-note {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  margin-top: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 767px) {
+  .telemetry-dashboard {
+    padding: 20px;
+  }
+  .telemetry-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .telemetry-footer {
+    gap: 12px;
+  }
 }
 
 .tags-group {

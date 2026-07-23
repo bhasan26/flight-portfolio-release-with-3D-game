@@ -1,4 +1,7 @@
 import { ThreeScene } from './three-scene.js';
+// Snapshot of real GitHub activity, refreshed by scripts/fetch-github.js at
+// build time and inlined into the bundle by Vite — no runtime network call.
+import githubStats from './github-stats.json';
 
 // Global instances
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -151,7 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const systems = [
     setupPreloader, setupClock, setupRadar, setupFidsAnimations,
     setupProjectModals, setupStoryModals, setupContactForm,
-    setupAudioSynth, setupHighScoreDisplay, setupStaticActions
+    setupAudioSynth, setupHighScoreDisplay, setupStaticActions,
+    setupGitHubTelemetry
   ];
   systems.forEach(fn => {
     try {
@@ -249,6 +253,116 @@ function setupStaticActions() {
     if (e.key !== 'Escape') return;
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
   });
+}
+
+// 2c. Live GitHub telemetry — drives the ENGINE N1 instrument and the
+// Powerplant panel in the Systems Console from githubStats.
+function setupGitHubTelemetry() {
+  const stats = githubStats;
+  const panel = document.getElementById('gh-telemetry');
+
+  // generatedAt is null only when the build-time fetch never succeeded; showing
+  // zeroes would misrepresent activity, so hide the panel entirely instead.
+  if (!stats || !stats.generatedAt) {
+    if (panel) panel.style.display = 'none';
+    return;
+  }
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  // --- ENGINE N1 instrument (left HUD) ---
+  const engineBar = document.getElementById('hud-engine-bar');
+  setText('hud-engine', stats.enginePct);
+  if (engineBar) engineBar.style.width = `${stats.enginePct}%`;
+  setText(
+    'hud-engine-sub',
+    `${stats.commits7d} COMMIT${stats.commits7d === 1 ? '' : 'S'} / 7D`
+  );
+
+  // --- Powerplant panel (Systems Console) ---
+  setText('gh-commits-7d', stats.commits7d);
+  setText('gh-commits-30d', stats.commits30d);
+  setText('gh-active-repos', stats.activeRepos);
+  setText('gh-streak', stats.streak);
+  setText('gh-public-repos', stats.publicRepos);
+  setText('gh-stars', stats.stars);
+  setText('gh-last-push', formatRelativeTime(stats.lastPush));
+
+  // Weekly commit sparkline, scaled to the busiest week in the window.
+  const sparkline = document.getElementById('gh-sparkline');
+  if (sparkline && stats.weeklyCommits?.length) {
+    const peak = Math.max(...stats.weeklyCommits, 1);
+    const weeks = stats.weeklyCommits.length;
+
+    sparkline.innerHTML = '';
+    stats.weeklyCommits.forEach((count, i) => {
+      const weeksAgo = weeks - 1 - i;
+
+      const bar = document.createElement('div');
+      bar.className = 'spark-bar';
+      bar.title = `${count} commit${count === 1 ? '' : 's'}`;
+
+      const fill = document.createElement('div');
+      fill.className = 'spark-fill';
+      // Leave room for the label beneath each bar.
+      fill.style.height = `${(count / peak) * 78}%`;
+
+      const label = document.createElement('span');
+      label.className = 'spark-label';
+      label.textContent = weeksAgo === 0 ? 'NOW' : `-${weeksAgo}W`;
+
+      bar.append(fill, label);
+      sparkline.appendChild(bar);
+    });
+
+    sparkline.setAttribute(
+      'aria-label',
+      `Commits per week over the last ${weeks} weeks: ${stats.weeklyCommits.join(', ')}`
+    );
+  }
+
+  // Language mix, most-used first.
+  const langs = document.getElementById('gh-languages');
+  if (langs && stats.topLanguages?.length) {
+    langs.innerHTML = '';
+    stats.topLanguages.forEach(({ name, count }) => {
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-outline';
+      badge.textContent = `${name} · ${count}`;
+      langs.appendChild(badge);
+    });
+  }
+
+  setText(
+    'gh-note',
+    `Read from the public GitHub API for @${stats.user} at build time. ` +
+      `Commit figures cover the last ${stats.commitWindowDays} days across ` +
+      `${stats.activeRepos} public repositories; "active days" counts consecutive ` +
+      `days with a public commit, not GitHub's private contribution streak. ` +
+      `Snapshot taken ${formatRelativeTime(stats.generatedAt)}.`
+  );
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return 'N/A';
+
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(diffMs)) return 'N/A';
+
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 1) return 'JUST NOW';
+  if (minutes < 60) return `${minutes}M AGO`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}H AGO`;
+
+  const days = Math.round(hours / 24);
+  if (days < 30) return `${days}D AGO`;
+
+  return `${Math.round(days / 30)}MO AGO`;
 }
 
 // 3. Autopilot Navigation & Scroll Sync
