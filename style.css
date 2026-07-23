@@ -399,6 +399,24 @@ body.loading-state {
   font-size: 9px;
 }
 
+.radar-solar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-glass);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  /* Phase labels vary a lot in length; keep the row on one line. */
+  white-space: nowrap;
+}
+
+.radar-solar .solar-key {
+  flex-shrink: 0;
+}
+
 /* Portfolio Section Scroller */
 .scroll-container {
   position: absolute;

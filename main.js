@@ -2,6 +2,7 @@ import { ThreeScene } from './three-scene.js';
 // Snapshot of real GitHub activity, refreshed by scripts/fetch-github.js at
 // build time and inlined into the bundle by Vite — no runtime network call.
 import githubStats from './github-stats.json';
+import { skyStateFor, localTime } from './solar.js';
 
 // Global instances
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPreloader, setupClock, setupRadar, setupFidsAnimations,
     setupProjectModals, setupStoryModals, setupContactForm,
     setupAudioSynth, setupHighScoreDisplay, setupStaticActions,
-    setupGitHubTelemetry
+    setupGitHubTelemetry, setupSolarReadout
   ];
   systems.forEach(fn => {
     try {
@@ -344,6 +345,30 @@ function setupGitHubTelemetry() {
       `days with a public commit, not GitHub's private contribution streak. ` +
       `Snapshot taken ${formatRelativeTime(stats.generatedAt)}.`
   );
+}
+
+// 2d. Solar readout — names the real sky condition over Spokane that the 3D
+// scene is rendering, so the effect is legible instead of just ambient.
+function setupSolarReadout() {
+  const phaseEl = document.getElementById('solar-phase');
+  const nextEl = document.getElementById('solar-next');
+  if (!phaseEl || !nextEl) return;
+
+  const render = () => {
+    const sky = skyStateFor();
+    phaseEl.textContent = sky.phase;
+
+    if (sky.nextEvent) {
+      const label = sky.nextEvent.type === 'sunrise' ? 'SUNRISE' : 'SUNSET';
+      nextEl.textContent = `${label} ${localTime(sky.nextEvent.at)}`;
+    } else {
+      nextEl.textContent = '';
+    }
+  };
+
+  render();
+  // Cheap enough to recompute; keeps a long-open tab from showing a past event.
+  setInterval(render, 60000);
 }
 
 function formatRelativeTime(iso) {

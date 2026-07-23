@@ -1,5 +1,15 @@
 import * as THREE from 'three';
 import { gsap } from 'gsap';
+import { skyStateFor } from './solar.js';
+
+// How far into the scroll the real Spokane sky keeps influencing the scene.
+// At the top you land in the sky that's actually over GEG right now; by the
+// time you reach the Logbook the scripted dawn->night journey has taken over.
+const REAL_SKY_FADE = 0.3;
+
+// The sun moves ~15°/hour, so re-reading it every 10 minutes keeps a long-open
+// tab honest without doing meaningful work.
+const SKY_REFRESH_MS = 10 * 60 * 1000;
 
 export class ThreeScene {
   constructor(containerId, onProgress) {
@@ -30,16 +40,21 @@ export class ThreeScene {
     this.onGameUpdate = null; // Callback hook
     this.onCollisionRing = null; // Audio beep hook
     
-    // Section colors (Dawn, High Noon, Sunset, Cosmic Starry Night)
+    // Section colors (Dawn, High Noon, Sunset, Cosmic Starry Night).
+    // `intensity` is used when the palette is selected by real solar elevation
+    // rather than by scroll position.
     this.colors = {
-      dawn: { sky: 0x0a1428, ambient: 0xffa07a, directional: 0xffd700 },
-      noon: { sky: 0x0052d4, ambient: 0xffffff, directional: 0x6fb1fc },
-      sunset: { sky: 0x2b1055, ambient: 0xf857a6, directional: 0xff7e5f },
-      night: { sky: 0x030610, ambient: 0x1f2e4d, directional: 0x00ffff }
+      dawn: { sky: 0x0a1428, ambient: 0xffa07a, directional: 0xffd700, intensity: 1.0 },
+      noon: { sky: 0x0052d4, ambient: 0xffffff, directional: 0x6fb1fc, intensity: 1.2 },
+      sunset: { sky: 0x2b1055, ambient: 0xf857a6, directional: 0xff7e5f, intensity: 0.8 },
+      night: { sky: 0x030610, ambient: 0x1f2e4d, directional: 0x00ffff, intensity: 0.25 }
     };
-    
+
+    // Where the sun actually is over Spokane right now — pure local arithmetic.
+    this.realSky = skyStateFor();
+
     this.currentSkyColor = new THREE.Color(this.colors.dawn.sky);
-    
+
     this.init();
   }
   
@@ -82,9 +97,16 @@ export class ThreeScene {
     
     // 6. Listeners
     window.addEventListener('resize', this.onWindowResize.bind(this));
-    
+
+    // 7. Paint the real Spokane sky before the first frame — updateScroll only
+    // fires once the visitor scrolls, so without this the arrival sky would
+    // always be the scripted dawn regardless of the actual time of day.
+    this.aimSunLight(this.realSky);
+    this.applySky(0);
+    this.skyTimer = setInterval(() => this.refreshRealSky(), SKY_REFRESH_MS);
+
     this.onProgress("Takeoff Ready!", 100);
-    
+
     // Start loop
     this.animate();
   }
@@ -426,15 +448,48 @@ export class ThreeScene {
     }
   }
   
-  // Track scroll updates from main.js
-  updateScroll(scrollPercentage) {
-    if (this.gameActive) return; // Ignore scroll tracking in manual game flight
-    
-    this.scrollProgress = scrollPercentage;
-    
-    // Interpolate Sky atmosphere color & light values using GSAP
-    let targetSkyColor, targetAmbientColor, targetDirColor, targetIntensity;
-    
+  /** Blend two named palettes into a concrete set of scene colors. */
+  paletteAt(fromName, toName, t) {
+    const a = this.colors[fromName];
+    const b = this.colors[toName];
+    return {
+      sky: new THREE.Color(a.sky).lerp(new THREE.Color(b.sky), t),
+      ambient: new THREE.Color(a.ambient).lerp(new THREE.Color(b.ambient), t),
+      directional: new THREE.Color(a.directional).lerp(new THREE.Color(b.directional), t),
+      intensity: a.intensity + (b.intensity - a.intensity) * t
+    };
+  }
+
+  /**
+   * Point the key light where the sun actually is over Spokane. Elevation is
+   * floored so a night arrival is lit from a plausible angle rather than from
+   * directly underneath — brightness is already handled by intensity.
+   */
+  aimSunLight(sky) {
+    const el = Math.max(sky.elevation, 5) * (Math.PI / 180);
+    const az = sky.azimuth * (Math.PI / 180);
+    const radius = 14;
+    const horizontal = Math.cos(el) * radius;
+
+    // Azimuth is clockwise from north; the scene's -Z faces north.
+    this.dirLight.position.set(
+      Math.sin(az) * horizontal,
+      Math.sin(el) * radius,
+      -Math.cos(az) * horizontal
+    );
+  }
+
+  /**
+   * Paint the sky for a scroll position, blended with the real sky over KGEG.
+   *
+   * The scripted dawn -> noon -> sunset -> night journey is preserved; the real
+   * sky is mixed in most strongly at the very top and fades out by
+   * REAL_SKY_FADE, so you arrive in Spokane's actual sky and then fly through
+   * the designed one.
+   */
+  applySky(scrollPercentage) {
+    let targetSkyColor, targetAmbientColor, targetDirColor, targetIntensity, starOpacity;
+
     if (scrollPercentage < 0.25) {
       // 1. Dawn (Home)
       const ratio = scrollPercentage / 0.25;
@@ -442,8 +497,8 @@ export class ThreeScene {
       targetAmbientColor = new THREE.Color(this.colors.dawn.ambient).lerp(new THREE.Color(this.colors.noon.ambient), ratio);
       targetDirColor = new THREE.Color(this.colors.dawn.directional).lerp(new THREE.Color(this.colors.noon.directional), ratio);
       targetIntensity = 0.8 + ratio * 0.4;
-      this.starPoints.material.opacity = 0.0;
-    } 
+      starOpacity = 0.0;
+    }
     else if (scrollPercentage < 0.5) {
       // 2. High Noon (Experience)
       const ratio = (scrollPercentage - 0.25) / 0.25;
@@ -451,7 +506,7 @@ export class ThreeScene {
       targetAmbientColor = new THREE.Color(this.colors.noon.ambient).lerp(new THREE.Color(this.colors.sunset.ambient), ratio);
       targetDirColor = new THREE.Color(this.colors.noon.directional).lerp(new THREE.Color(this.colors.sunset.directional), ratio);
       targetIntensity = 1.2 - ratio * 0.4;
-      this.starPoints.material.opacity = 0.0;
+      starOpacity = 0.0;
     }
     else if (scrollPercentage < 0.75) {
       // 3. Sunset (Projects)
@@ -460,7 +515,7 @@ export class ThreeScene {
       targetAmbientColor = new THREE.Color(this.colors.sunset.ambient).lerp(new THREE.Color(this.colors.night.ambient), ratio);
       targetDirColor = new THREE.Color(this.colors.sunset.directional).lerp(new THREE.Color(this.colors.night.directional), ratio);
       targetIntensity = 0.8 - ratio * 0.6;
-      this.starPoints.material.opacity = ratio * 0.6;
+      starOpacity = ratio * 0.6;
     }
     else {
       // 4. Starry Cosmic Night (Controls & Arrival)
@@ -468,16 +523,46 @@ export class ThreeScene {
       targetAmbientColor = new THREE.Color(this.colors.night.ambient);
       targetDirColor = new THREE.Color(this.colors.night.directional);
       targetIntensity = 0.2;
-      this.starPoints.material.opacity = 0.8;
+      starOpacity = 0.8;
     }
-    
-    // Set colors & light directly
-    this.scene.background = targetSkyColor;
-    this.scene.fog.color = targetSkyColor;
-    this.ambientLight.color = targetAmbientColor;
-    this.dirLight.color = targetDirColor;
+
+    // Mix in the sky that's actually over Spokane, strongest on arrival.
+    const realWeight = Math.max(0, 1 - scrollPercentage / REAL_SKY_FADE);
+    if (realWeight > 0 && this.realSky) {
+      const real = this.paletteAt(this.realSky.from, this.realSky.to, this.realSky.t);
+      targetSkyColor.lerp(real.sky, realWeight);
+      targetAmbientColor.lerp(real.ambient, realWeight);
+      targetDirColor.lerp(real.directional, realWeight);
+      targetIntensity += (real.intensity - targetIntensity) * realWeight;
+      starOpacity += (this.realSky.starOpacity - starOpacity) * realWeight;
+    }
+
+    // Mutate in place rather than reassigning, so the GSAP tweens that game
+    // mode runs against scene.background keep pointing at a live object.
+    this.currentSkyColor.copy(targetSkyColor);
+    this.scene.background = this.currentSkyColor;
+    this.scene.fog.color.copy(targetSkyColor);
+    this.ambientLight.color.copy(targetAmbientColor);
+    this.dirLight.color.copy(targetDirColor);
     this.dirLight.intensity = targetIntensity;
+    this.starPoints.material.opacity = starOpacity;
+  }
+
+  /** Re-read the sun so a tab left open overnight doesn't keep a stale sky. */
+  refreshRealSky() {
+    this.realSky = skyStateFor();
+    this.aimSunLight(this.realSky);
+    if (!this.gameActive) this.applySky(this.scrollProgress);
+    return this.realSky;
+  }
+
+  // Track scroll updates from main.js
+  updateScroll(scrollPercentage) {
+    if (this.gameActive) return; // Ignore scroll tracking in manual game flight
     
+    this.scrollProgress = scrollPercentage;
+    this.applySky(scrollPercentage);
+
     // Flight camera navigation transitions:
     // Move the camera and plane along a curving spiral trajectory through the gates!
     const zDepth = -160 * scrollPercentage;
