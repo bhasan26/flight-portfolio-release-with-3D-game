@@ -13,7 +13,10 @@ let audioCtx = null;
 let audioMuted = true; // Muted by default to comply with browser user-interaction policies
 
 // Game score telemetry state
-let highscore = localStorage.getItem('bilal_flight_highscore') || 0;
+let highscore = Number(localStorage.getItem('bilal_flight_highscore')) || 0;
+
+// Manual flight mode needs a keyboard; touch-only devices have no way to steer.
+const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 // Project Telemetry Database (Spec sheets)
 const projectSpecs = {
@@ -148,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const systems = [
     setupPreloader, setupClock, setupRadar, setupFidsAnimations,
     setupProjectModals, setupStoryModals, setupContactForm,
-    setupAudioSynth, setupHighScoreDisplay
+    setupAudioSynth, setupHighScoreDisplay, setupStaticActions
   ];
   systems.forEach(fn => {
     try {
@@ -205,11 +208,47 @@ function initializeThreeScene() {
       console.error("Three.js initialization failure:", e);
       statusText.textContent = "Error loading WebGL. Starting in 2D mode...";
       setTimeout(() => {
-        document.getElementById('preloader').style.opacity = 0;
+        const preloader = document.getElementById('preloader');
+        preloader.style.opacity = 0;
         document.body.classList.remove('loading-state');
+        setTimeout(() => { preloader.style.display = 'none'; }, 500);
+
+        // The page still has to be navigable without WebGL — nav buttons, the
+        // mobile menu and the HUD instruments all live in setupScrollControls.
+        setupScrollControls();
+
+        // No 3D scene means no manual flight mode; hide the override switch
+        // instead of leaving a button that silently does nothing.
+        const gameBtn = document.getElementById('game-override-btn');
+        if (gameBtn) gameBtn.style.display = 'none';
       }, 1000);
     }
   }, 200);
+}
+
+// 2b. Listeners that used to live in inline `onclick` attributes. The deployed
+// CSP is `script-src 'self'` (no 'unsafe-inline'), which blocks inline handlers
+// outright, so they have to be bound from this module instead.
+function setupStaticActions() {
+  const takeoffCta = document.getElementById('takeoff-cta');
+  if (takeoffCta) {
+    takeoffCta.addEventListener('click', () => {
+      playSynthAudio('click');
+      document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // Link previews sit inside clickable cards — opening the external link must
+  // not also pop the card's modal.
+  document.querySelectorAll('.link-preview-box').forEach(link => {
+    link.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  // Escape closes whichever modal is open.
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  });
 }
 
 // 3. Autopilot Navigation & Scroll Sync
@@ -321,8 +360,10 @@ function setupScrollControls() {
       
       const sectionTitle = document.querySelector(`#${activeSection} .section-title`);
       if (sectionTitle) {
-        const text = sectionTitle.textContent;
-        flipText(sectionTitle, text);
+        // Read from the cached original, never from textContent: a re-entry
+        // while a previous flip is mid-scramble would otherwise latch the
+        // scrambled characters in as the title permanently.
+        flipText(sectionTitle, sectionTitle.dataset.flipText || sectionTitle.textContent);
       }
       
       const statusIndicator = document.getElementById('flight-status-indicator');
@@ -564,13 +605,21 @@ function setupFidsAnimations() {
   targets.forEach(t => observer.observe(t));
 }
 
+const activeFlips = new WeakMap();
+
 function flipText(element, finalString) {
   if (!element) return;
-  
+
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/_➔[] ";
   const originalText = finalString.trim().toUpperCase();
+
+  // Remember the real text and cancel any flip still running on this element,
+  // so restarts can't compound into garbage.
+  element.dataset.flipText = originalText;
+  clearInterval(activeFlips.get(element));
+
   element.textContent = "";
-  
+
   let currentString = Array(originalText.length).fill(' ');
   let iteration = 0;
   
@@ -598,6 +647,8 @@ function flipText(element, finalString) {
     
     iteration++;
   }, 25);
+
+  activeFlips.set(element, interval);
 }
 
 // 7. Hangar Modals
@@ -759,7 +810,7 @@ function setupContactForm() {
       submitBtn.innerHTML = "<span>TRANSMISSION SUCCESSFUL ✓</span>";
       
       const stampEl = document.querySelector('.passport-stamp');
-      stampEl.classList.add('animate-pulse');
+      stampEl?.classList.add('animate-pulse');
       playSynthAudio('chime');
       
       alert(`Customs Declaration Transmitted!\nPassenger: ${passengerName}\nCoordinates logged successfully to GEG.`);
@@ -769,24 +820,33 @@ function setupContactForm() {
         submitBtn.disabled = false;
         submitBtn.className = "form-submit-btn bg-green text-dark font-extrabold";
         submitBtn.innerHTML = originalText;
-        stampEl.classList.remove('animate-pulse');
+        stampEl?.classList.remove('animate-pulse');
       }, 3000);
     })
     .catch((err) => {
-      console.warn("Mailing API warning: Formspree token unassigned. Simulating local telemetry dispatch.");
-      // Graceful local backup simulation
+      // The message did NOT get through — never report success here, or a real
+      // visitor's note is dropped while they believe it was sent. Fall back to
+      // their own mail client with the message pre-filled.
+      console.error("Contact form transmission failed:", err);
+
+      submitBtn.className = "form-submit-btn bg-amber text-dark font-extrabold";
+      submitBtn.innerHTML = "<span>TRANSMISSION FAILED ✕</span>";
+
+      const mailto = `mailto:khanjames160@gmail.com`
+        + `?subject=${encodeURIComponent(`Portfolio contact from ${passengerName}`)}`
+        + `&body=${encodeURIComponent(`${cargoManifest}\n\nReply to: ${passengerEmail}`)}`;
+
+      alert(
+        `Transmission failed — your message was not delivered.\n\n` +
+        `Opening your mail client so it isn't lost. You can also reach me directly at khanjames160@gmail.com.`
+      );
+      window.location.href = mailto;
+
       setTimeout(() => {
-        submitBtn.className = "form-submit-btn bg-cyan text-dark font-extrabold";
-        submitBtn.innerHTML = "<span>LOCAL SUCCESSFUL ✓</span>";
-        playSynthAudio('chime');
-        alert(`Telemetry Dispatch!\nPassenger: ${passengerName}\nLogged to console (API Key unassigned).`);
-        form.reset();
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.className = "form-submit-btn bg-green text-dark font-extrabold";
-          submitBtn.innerHTML = originalText;
-        }, 3000);
-      }, 1000);
+        submitBtn.disabled = false;
+        submitBtn.className = "form-submit-btn bg-green text-dark font-extrabold";
+        submitBtn.innerHTML = originalText;
+      }, 3000);
     });
   });
 }
@@ -913,18 +973,28 @@ function setupManualFlightTriggers() {
   const autopilotText = document.getElementById('autopilot-status-text');
   
   if (!gameBtn || !threeSceneInstance) return;
-  
+
+  // Manual flight is WASD/arrow-key steering only. On a touch-only device it
+  // would lock page scrolling for ~30s with no way to fly, so don't offer it.
+  if (isTouchOnly) {
+    gameBtn.style.display = 'none';
+    return;
+  }
+
   // Highscore display
   setupHighScoreDisplay();
-  
+
+  let gameOverHandled = false;
+
   gameBtn.addEventListener('click', () => {
     // Initialize Web Audio Context if needed
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    
+
     const active = !threeSceneInstance.gameActive;
-    
+    gameOverHandled = false;
+
     playSynthAudio('click');
     threeSceneInstance.toggleGameMode(active);
     
@@ -978,11 +1048,13 @@ function setupManualFlightTriggers() {
           document.getElementById('game-highscore').textContent = highscore;
         }
         
-        // Fuel energy exhausted game over trigger
-        if (stats.gameOver) {
+        // Fuel energy exhausted game over trigger. The scene keeps emitting
+        // gameOver every frame until it is torn down, so latch it.
+        if (stats.gameOver && !gameOverHandled) {
+          gameOverHandled = true;
           playSynthAudio('click');
           alert(`Telemetry warning: Cockpit fuel critical!\nScore achieved: ${stats.score} points.`);
-          
+
           // Disable game
           gameBtn.click();
         }
@@ -998,8 +1070,8 @@ function setupManualFlightTriggers() {
       autopilotText.className = "status-text glow-text text-green";
       
       document.querySelectorAll('.hud-nav .nav-btn').forEach(btn => {
-        btn.style.opacity = '1.1';
-        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '';
+        btn.style.pointerEvents = '';
       });
       
       // Remove listeners

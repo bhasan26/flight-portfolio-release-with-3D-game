@@ -379,18 +379,19 @@ export class ThreeScene {
       // Spawn golden target rings
       this.spawnGameRings();
     } else {
-      // Re-enable scroller
-      document.getElementById('scroll-main').style.overflowY = 'scroll';
+      // Re-enable scroller (clear the inline lock, don't hard-code a value)
+      document.getElementById('scroll-main').style.overflowY = '';
       this.gates.forEach(g => g.visible = true);
-      
+
       // Remove game rings
       this.gameRings.forEach(ring => this.scene.remove(ring));
       this.gameRings = [];
-      
+
       // Trigger camera reset to current scroll coordinate
       const scrollMain = document.getElementById('scroll-main');
-      const scrollPct = scrollMain.scrollTop / (scrollMain.scrollHeight - scrollMain.clientHeight);
-      this.updateScroll(scrollPct);
+      const scrollRange = scrollMain.scrollHeight - scrollMain.clientHeight;
+      // A zero range would hand updateScroll a NaN and poison every position.
+      this.updateScroll(scrollRange > 0 ? scrollMain.scrollTop / scrollRange : 0);
     }
   }
   
