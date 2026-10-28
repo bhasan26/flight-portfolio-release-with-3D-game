@@ -7,6 +7,9 @@ import { ThreeScene } from '../three-scene.js';
 import { createDialog, readHighScore, saveHighScore, steeringDirection } from '../ui.js';
 import { createPortfolioRouter } from '../navigation.js';
 import { readingMinutes, readingProgress, bindFlightInput } from '../interactions.js';
+import { renderContent } from '../content.js';
+import { validateContact } from '../contact.js';
+import { CONTACT_ENDPOINT } from '../security-policy.js';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../main.js', import.meta.url), 'utf8')
@@ -24,7 +27,7 @@ function app(t, { compact = false, touch = false, storageDenied = false, reduced
   window.requestAnimationFrame = () => {};
   window.HTMLElement.prototype.scrollIntoView = function () { window.scrolledTo = this.id; };
   Object.assign(window, { createDialog, readHighScore, saveHighScore, steeringDirection, createPortfolioRouter,
-    readingMinutes, readingProgress, bindFlightInput, githubStats: {} });
+    readingMinutes, readingProgress, bindFlightInput, renderContent, validateContact, CONTACT_ENDPOINT, githubStats: {} });
   if (storageDenied) Object.defineProperty(window, 'localStorage', { get() { throw new Error('Denied'); } });
   const addListener = window.document.addEventListener.bind(window.document);
   window.document.addEventListener = (type, callback, options) => {
@@ -227,7 +230,15 @@ async function submit(window, result) {
   form.elements.email.value = 'visitor@example.com';
   form.elements.message.value = 'Hello from a local test.';
   let calls = 0;
-  window.fetch = async () => { calls++; return result(); };
+  window.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, CONTACT_ENDPOINT);
+    assert.equal(options.credentials, 'omit');
+    assert.equal(options.redirect, 'error');
+    assert.equal(options.mode, 'cors');
+    assert.equal(JSON.parse(options.body)._gotcha, '');
+    return result();
+  };
   form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(resolve => setTimeout(resolve, 0));
@@ -244,6 +255,25 @@ test('contact success resets the form and announces delivery', async t => {
   assert.equal(form.elements.message.value, '');
   assert.match(window.document.getElementById('contact-status').textContent, /Message sent/);
   assert.equal(window.document.getElementById('contact-email-fallback').hidden, true);
+});
+
+test('filled honeypots and oversized contact drafts never trigger a request', t => {
+  const window = app(t);
+  window.app.setupContactForm();
+  const form = window.document.getElementById('customs-contact-form');
+  let requests = 0;
+  window.fetch = async () => { requests++; return { ok: true }; };
+  form.elements.name.value = 'Test Visitor';
+  form.elements.email.value = 'visitor@example.com';
+  form.elements.message.value = 'A message';
+  form.elements._gotcha.value = 'automated field';
+  form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  assert.equal(requests, 0);
+  assert.equal(window.document.getElementById('contact-email-fallback').hidden, false);
+  form.elements._gotcha.value = '';
+  form.elements.message.value = 'x'.repeat(10001);
+  form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  assert.equal(requests, 0);
 });
 
 for (const [name, result] of [

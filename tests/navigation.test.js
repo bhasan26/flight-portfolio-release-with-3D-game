@@ -29,7 +29,7 @@ test('shared project and story URLs open their exact content on startup', t => {
 });
 
 test('malformed or unknown URL fragments cannot open arbitrary content or throw', t => {
-  for (const hash of ['#project/missing', '#story/google-io-2026/extra', '#constructor/x', '#__proto__/x', '#%E0%A4%A']) {
+  for (const hash of ['#project/missing', '#story/google-io-2026/extra', '#constructor/x', '#__proto__/x', '#%E0%A4%A', `#${'x'.repeat(300)}`]) {
     const { router, visited } = routerFor(t, hash);
     assert.doesNotThrow(() => router.start());
     assert.deepEqual(visited, []);

@@ -8,6 +8,7 @@ export function createPortfolioRouter(window, { sections, projects, stories, onR
   let lastHash;
 
   function parse(hash) {
+    if (hash.length > 256) return null;
     let value;
     try {
       value = decodeURIComponent(hash.replace(/^#/, ''));

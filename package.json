@@ -9,9 +9,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "github:refresh": "node scripts/fetch-github.js",
-    "test": "node --test"
+    "test": "node --test",
+    "security:check": "node --test tests/security.test.js && npm audit --audit-level=low"
   },
   "dependencies": {
+    "dompurify": "3.4.17",
     "gsap": "^3.12.5",
     "three": "^0.164.1"
   },

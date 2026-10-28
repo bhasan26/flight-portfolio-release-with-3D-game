@@ -74,8 +74,10 @@ export function createDialog(modal, closeButton, background, { onClose = () => {
 }
 
 export function steeringDirection(key) {
-  return {
+  const directions = {
     w: 'up', arrowup: 'up', s: 'down', arrowdown: 'down',
     a: 'left', arrowleft: 'left', d: 'right', arrowright: 'right'
-  }[key.toLowerCase()];
+  };
+  const normalized = key.toLowerCase();
+  return Object.hasOwn(directions, normalized) ? directions[normalized] : undefined;
 }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Security hardening -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; style-src-elem 'self' https://fonts.googleapis.com; style-src-attr 'none'; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://formspree.io/f/xovqdbyq; form-action https://formspree.io; object-src 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; base-uri 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <!-- SEO Tags -->
@@ -64,7 +64,7 @@
 </head>
 <body class="loading-state">
   <a class="skip-link" href="#scroll-main">Skip to portfolio</a>
-  <noscript><style>#preloader { display: none; } .loading-state { cursor: auto; }</style></noscript>
+  <noscript><link rel="stylesheet" href="/noscript.css"></noscript>
 
   <!-- Preloader Screen -->
   <div id="preloader">
@@ -335,7 +335,7 @@
               </div>
             </div>
             <div class="boarding-barcode-container">
-              <a href="/Bilal_Hasan_Resume.pdf" target="_blank" rel="noopener noreferrer" class="resume-download-btn bg-amber text-dark font-bold" style="display: inline-block; text-decoration: none;">
+              <a href="/Bilal_Hasan_Resume.pdf" target="_blank" rel="noopener noreferrer" class="resume-download-btn bg-amber text-dark font-bold">
                 <span>VIEW RESUME (PDF)</span>
               </a>
               <div class="barcode">
@@ -646,7 +646,7 @@
                 </div>
               </div>
             </a>
-            <div class="project-tags mono-font" style="margin-top: 16px;">
+            <div class="project-tags mono-font mt-4">
               <span>Journalism</span>
               <span>Sports Writing</span>
               <span>Editorial</span>
@@ -683,7 +683,7 @@
                 </div>
               </div>
             </a>
-            <div class="project-tags mono-font" style="margin-top: 16px;">
+            <div class="project-tags mono-font mt-4">
               <span>Community</span>
               <span>GCP</span>
               <span>Gemini API</span>
@@ -965,7 +965,11 @@
               <span class="fids-font text-green">CUSTOMS & COMMUNICATIONS DECLARATION</span>
               <span class="form-sub mono-font">FORM: COMM-2026-BH</span>
             </div>
-            <form id="customs-contact-form" class="mono-font">
+            <form id="customs-contact-form" class="mono-font" action="https://formspree.io/f/xovqdbyq" method="post">
+              <div class="contact-honeypot" aria-hidden="true">
+                <label for="contact-website">Leave this field empty</label>
+                <input id="contact-website" type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+              </div>
               <div class="form-row">
                 <div class="form-group col-6">
                   <label for="passenger-name" class="text-dim">PASSENGER NAME / FROM</label>
@@ -1205,23 +1209,23 @@
     <div class="print-section">
       <h2 class="print-section-title">LEADERSHIP & AWARDS</h2>
 
-      <div class="print-item" style="margin-top: 6px;">
+      <div class="print-item print-leadership-item">
         <strong>Adobe Student Ambassador (2026 &ndash; Present)</strong>
         <p class="print-lead-text">Selected to represent Adobe on the Whitworth University campus, introducing students to Creative Cloud tools through workshops, demos, and creative community programming.</p>
       </div>
-      <div class="print-item" style="margin-top: 6px;">
+      <div class="print-item print-leadership-item">
         <strong>Stanley O. McNaughton Award (June 2026)</strong>
         <p class="print-lead-text">Honored for demonstrating impactful community service and leadership.</p>
       </div>
-      <div class="print-item" style="margin-top: 6px;">
+      <div class="print-item print-leadership-item">
         <strong>Google Cloud Certification Program</strong>
         <p class="print-lead-text">Actively trained in the Associate Cloud Engineer track, earning multiple technical skill badges.</p>
       </div>
-      <div class="print-item" style="margin-top: 6px;">
+      <div class="print-item print-leadership-item">
         <strong>IEEE Communications Society (ComSoc) Student Volunteer</strong>
         <p class="print-lead-text">Supported operations at the flagship IEEE ComSoc Conference in Denver, CO, assisting with registration logistics, session coordination, and speaker support.</p>
       </div>
-      <div class="print-item" style="margin-top: 6px;">
+      <div class="print-item print-leadership-item">
         <strong>The Citizens Foundation (TCF Bagban Ambassador Program) Fundraiser Volunteer</strong>
         <p class="print-lead-text">Spearheaded local fundraising campaigns to secure quality educational opportunities for children.</p>
       </div>
@@ -1289,7 +1293,7 @@
         <div id="modal-story-body" class="text-dim story-modal-text">
           <!-- Dynamically populated -->
         </div>
-        <div class="story-tags mono-font" id="modal-story-tags" style="margin-top: 20px;">
+        <div class="story-tags mono-font" id="modal-story-tags">
           <!-- Dynamically populated -->
         </div>
         <button id="copy-story-link" class="btn btn-secondary copy-link-btn" type="button" data-share-type="story" aria-describedby="story-share-status">COPY STORY LINK</button>

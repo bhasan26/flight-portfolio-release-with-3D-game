@@ -482,6 +482,10 @@ body.loading-state {
 .font-extrabold { font-weight: 800; }
 .max-w-xl { max-w: 36rem; }
 .mb-6 { margin-bottom: 24px; }
+.mt-4 { margin-top: 16px; }
+.print-leadership-item { margin-top: 6px; }
+.contact-honeypot { display: none; }
+#modal-story-tags { margin-top: 20px; }
 
 /* 1. DEPARTURE Section */
 .intro-grid {
@@ -703,6 +707,7 @@ body.loading-state {
 }
 
 .resume-download-btn {
+  display: inline-block;
   text-decoration: none;
   font-size: 11px;
   padding: 10px 18px;
@@ -2105,7 +2110,7 @@ body.animations-paused *, body.animations-paused *::before, body.animations-paus
 .game-hud-overlay { visibility: hidden; }
 .game-hud-overlay.active { visibility: visible; }
 .game-hud-header { flex-wrap: wrap; gap: 8px; }
-.game-mode .scroll-container { visibility: hidden; }
+.game-mode .scroll-container { visibility: hidden; opacity: 0; }
 .game-mode .hud-left-instruments, .game-mode .hud-right-instruments { visibility: hidden; }
 .game-mode #canvas-container { z-index: 6; }
 .flight-feedback { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(500px, calc(100% - 32px)); z-index: 20; background: var(--bg-deep); color: var(--amber); padding: 16px; border: 1px solid var(--border-amber); border-radius: 8px; font-size: 12px; }

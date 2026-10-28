@@ -1,6 +1,9 @@
 import { createDialog, readHighScore, saveHighScore } from './ui.js';
 import { createPortfolioRouter } from './navigation.js';
 import { readingMinutes, readingProgress, bindFlightInput } from './interactions.js';
+import { renderContent } from './content.js';
+import { validateContact } from './contact.js';
+import { CONTACT_ENDPOINT } from './security-policy.js';
 // Snapshot of real GitHub activity, refreshed by scripts/fetch-github.js at
 // build time and inlined into the bundle by Vite — no runtime network call.
 import githubStats from './github-stats.json';
@@ -375,7 +378,7 @@ function setupGitHubTelemetry() {
     const peak = Math.max(...stats.weeklyCommits, 1);
     const weeks = stats.weeklyCommits.length;
 
-    sparkline.innerHTML = '';
+    sparkline.replaceChildren();
     stats.weeklyCommits.forEach((count, i) => {
       const weeksAgo = weeks - 1 - i;
 
@@ -405,7 +408,7 @@ function setupGitHubTelemetry() {
   // Language mix, most-used first.
   const langs = document.getElementById('gh-languages');
   if (langs && stats.topLanguages?.length) {
-    langs.innerHTML = '';
+    langs.replaceChildren();
     stats.topLanguages.forEach(({ name, count }) => {
       const badge = document.createElement('span');
       badge.className = 'badge badge-outline';
@@ -932,9 +935,9 @@ function setupProjectModals() {
       if (specs) {
         modalBadge.textContent = specs.badge;
         modalTitle.textContent = specs.title.toUpperCase();
-        modalDetails.innerHTML = specs.details;
+        renderContent(modalDetails, specs.details);
         
-        modalStack.innerHTML = "";
+        modalStack.replaceChildren();
         specs.stack.forEach(tech => {
           const b = document.createElement('span');
           b.className = "badge badge-outline";
@@ -1012,7 +1015,7 @@ function setupStoryModals() {
     trigger.setAttribute('aria-label', `Read ${card.querySelector('h3').textContent}`);
     const storyId = card.getAttribute('data-story');
     const text = document.createElement('div');
-    text.innerHTML = storySpecs[storyId]?.body || '';
+    renderContent(text, storySpecs[storyId]?.body || '');
     const minutes = readingMinutes(text.textContent);
     const date = card.querySelector('.story-date');
     const metadata = document.createElement('div');
@@ -1031,10 +1034,10 @@ function setupStoryModals() {
       if (story) {
         modalDate.textContent = story.date;
         modalTitle.textContent = story.title.toUpperCase();
-        modalBody.innerHTML = story.body;
+        renderContent(modalBody, story.body);
         document.getElementById('story-reading-time').textContent = `${minutes} MIN READ`;
 
-        modalTags.innerHTML = "";
+        modalTags.replaceChildren();
         story.tags.forEach(tag => {
           const b = document.createElement('span');
           b.textContent = tag;
@@ -1084,13 +1087,19 @@ function setupContactForm() {
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (submitBtn.disabled || !form.reportValidity()) return;
-    const name = form.elements.name.value.trim();
-    const email = form.elements.email.value.trim();
-    const message = form.elements.message.value.trim();
-    if (!name || !message) {
-      status.textContent = 'Please enter your name and a message.';
+    const result = validateContact({
+      name: form.elements.name.value,
+      email: form.elements.email.value,
+      message: form.elements.message.value,
+      gotcha: form.elements._gotcha.value
+    });
+    if (result.error) {
+      status.textContent = result.error;
+      fallback.href = 'mailto:khanjames160@gmail.com';
+      fallback.hidden = false;
       return;
     }
+    const { name, email, message } = result.fields;
     playSynthAudio('click');
     submitBtn.disabled = true;
     form.setAttribute('aria-busy', 'true');
@@ -1100,10 +1109,13 @@ function setupContactForm() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     try {
-      const response = await fetch('https://formspree.io/f/xovqdbyq', {
+      const response = await fetch(CONTACT_ENDPOINT, {
         method: 'POST',
+        credentials: 'omit',
+        redirect: 'error',
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message, _gotcha: '' }),
         signal: controller.signal
       });
       if (!response.ok) throw new Error(`Contact service returned ${response.status}`);
@@ -1151,26 +1163,22 @@ function setupAudioSynth() {
     soundToggleBtn.setAttribute('aria-pressed', String(!audioMuted));
     soundToggleBtn.setAttribute('aria-label', audioMuted ? 'Enable cockpit audio' : 'Mute cockpit audio');
     
-    if (audioMuted) {
-      soundToggleBtn.classList.remove('active');
-      soundToggleBtn.className = "sound-btn text-muted";
-      soundToggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mute-icon">
-          <path d="M11 5 6 9H2v6h4l5 4V5z"/>
-          <line x1="23" y1="9" x2="17" y2="15"/>
-          <line x1="17" y1="9" x2="23" y2="15"/>
-        </svg>
-      `;
-    } else {
-      soundToggleBtn.classList.add('active');
-      soundToggleBtn.className = "sound-btn active text-amber";
-      soundToggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mute-icon">
-          <path d="M11 5 6 9H2v6h4l5 4V5z"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-        </svg>
-      `;
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    for (const [name, value] of Object.entries({
+      width: '14', height: '14', viewBox: '0 0 24 24', fill: 'none',
+      stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    })) icon.setAttribute(name, value);
+    const paths = ['M11 5 6 9H2v6h4l5 4V5z', ...(audioMuted
+      ? ['M23 9 17 15', 'M17 9 23 15']
+      : ['M15.54 8.46a5 5 0 0 1 0 7.07', 'M19.07 4.93a10 10 0 0 1 0 14.14'])];
+    paths.forEach(d => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      icon.appendChild(path);
+    });
+    soundToggleBtn.replaceChildren(icon);
+    soundToggleBtn.className = audioMuted ? 'sound-btn text-muted' : 'sound-btn active text-amber';
+    if (!audioMuted) {
       // Resume context if suspended
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
