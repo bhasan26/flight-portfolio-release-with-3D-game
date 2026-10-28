@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Security hardening -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'; upgrade-insecure-requests">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://formspree.io; object-src 'none'; base-uri 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <!-- SEO Tags -->
@@ -41,7 +40,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Styling -->
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?direct">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -64,6 +63,8 @@
   </script>
 </head>
 <body class="loading-state">
+  <a class="skip-link" href="#scroll-main">Skip to portfolio</a>
+  <noscript><style>#preloader { display: none; } .loading-state { cursor: auto; }</style></noscript>
 
   <!-- Preloader Screen -->
   <div id="preloader">
@@ -80,7 +81,7 @@
   </div>
 
   <!-- Background Three.js Viewport -->
-  <div id="canvas-container"></div>
+  <div id="canvas-container" aria-hidden="true"></div>
 
   <!-- High-Fidelity Cockpit HUD Overlay -->
   <div class="hud-overlay" id="hud">
@@ -97,8 +98,8 @@
         </div>
       </div>
 
-      <nav class="hud-nav mono-font">
-        <button class="nav-btn active" data-section="departure">
+      <nav id="portfolio-nav" class="hud-nav mono-font" aria-label="Portfolio sections">
+        <button class="nav-btn active" data-section="departure" aria-current="location">
           <span class="btn-indicator"></span>
           <span class="nav-num">NAV 01</span>
           <span class="nav-text">DEPARTURE</span>
@@ -130,14 +131,14 @@
         </button>
         
         <!-- Manual override cockpit switch -->
-        <button class="nav-btn text-amber border-amber" id="game-override-btn" title="Toggle Manual Flight Mode (Game Mode)">
+        <button class="nav-btn text-amber border-amber" id="game-override-btn" disabled aria-pressed="false" title="Toggle Manual Flight Mode (Game Mode)">
           <span class="btn-indicator bg-amber"></span>
           <span class="nav-num">SYS</span>
           <span class="nav-text">MANUAL FLIGHT</span>
         </button>
       </nav>
 
-      <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Toggle navigation menu" aria-label="Toggle navigation menu" aria-expanded="false">
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-controls="portfolio-nav" title="Toggle navigation menu" aria-label="Toggle navigation menu" aria-expanded="false">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" y1="7" x2="20" y2="7"/>
           <line x1="4" y1="12" x2="20" y2="12"/>
@@ -147,7 +148,7 @@
 
       <div class="hud-clock mono-font">
         <div class="clock-top-row">
-          <button id="sound-toggle-btn" class="sound-btn text-muted" title="Mute/Unmute Cockpit Audio">
+          <button id="sound-toggle-btn" aria-label="Enable cockpit audio" aria-pressed="false" class="sound-btn text-muted" title="Mute/Unmute Cockpit Audio">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mute-icon">
               <path d="M11 5 6 9H2v6h4l5 4V5z"/>
               <line x1="23" y1="9" x2="17" y2="15"/>
@@ -214,11 +215,12 @@
   </div>
 
   <!-- Game HUD cockpit telemetry screen (Initially Hidden) -->
-  <div id="game-hud" class="game-hud-overlay mono-font glass-card border-amber">
+  <div id="game-hud" class="game-hud-overlay mono-font glass-card border-amber" aria-hidden="true" inert>
     <div class="game-hud-header">
       <span class="text-amber font-bold glow-amber">// MANUAL OVERRIDE ENGAGED</span>
-      <span class="game-instructions text-dim">STEER: [WASD] or [ARROWS] | EXIT: CLICK MANUAL FLIGHT</span>
+      <span class="game-instructions text-dim">STEER: [WASD] or [ARROWS] | EXIT: [ESC]</span>
     </div>
+    <button id="exit-game-btn" class="btn btn-secondary" type="button">EXIT FLIGHT (ESC)</button>
     <div class="game-stats-grid">
       <div class="stat-box">
         <span class="hud-label">SCORE</span>
@@ -236,7 +238,8 @@
   </div>
 
   <!-- Main Scrollable Content Container -->
-  <main class="scroll-container" id="scroll-main">
+  <p id="flight-feedback" class="flight-feedback mono-font" role="status"></p>
+  <main class="scroll-container" id="scroll-main" tabindex="-1">
 
     <!-- Section 1: DEPARTURE LOUNGE (Home) -->
     <section class="portfolio-section" id="departure">
@@ -254,7 +257,7 @@
             
             <div class="departure-actions">
               <button class="btn btn-primary" id="takeoff-cta">
-                <span>PULL DOWN TO TAKEOFF</span>
+                <span>VIEW EXPERIENCE</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 5v14M19 12l-7 7-7-7"/>
                 </svg>
@@ -317,7 +320,7 @@
             </div>
             <div class="boarding-barcode-container">
               <a href="/Bilal_Hasan_Resume.pdf" target="_blank" rel="noopener noreferrer" class="resume-download-btn bg-amber text-dark font-bold" style="display: inline-block; text-decoration: none;">
-                <span>PRINT CV TICKET</span>
+                <span>VIEW RESUME (PDF)</span>
               </a>
               <div class="barcode">
                 <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
@@ -615,7 +618,7 @@
               </div>
               <div class="link-preview-body">
                 <div class="link-preview-image-container">
-                  <img class="link-preview-image" src="/whitworthian-logo.jpg" alt="The Whitworthian" />
+                  <img loading="lazy" decoding="async" class="link-preview-image" src="/whitworthian-logo.jpg" alt="The Whitworthian" />
                 </div>
                 <div class="link-preview-content">
                   <div class="link-preview-title">Eyes on the prize: Pirates eye the NWC title after regular season success</div>
@@ -692,7 +695,7 @@
 
           <!-- Story 1 -->
           <div class="story-card glass-card animate-on-scroll" data-story="gdg-year-one">
-            <div class="story-cover" style="background-image: url('/stories/gdg-certificate.png');"></div>
+            <img class="story-cover" src="/stories/gdg-certificate.png" alt="GDG on Campus certificate" width="1200" height="927" loading="lazy" decoding="async">
             <div class="story-card-body">
               <span class="story-date mono-font text-cyan">APR 2026</span>
               <h3 class="story-title">One Year Running GDG on Campus</h3>
@@ -709,7 +712,7 @@
 
           <!-- Story 2: Google I/O -->
           <div class="story-card glass-card animate-on-scroll" data-story="google-io-2026">
-            <div class="story-cover" style="background-image: url('/stories/io-group.jpg');"></div>
+            <img class="story-cover" src="/stories/io-group.jpg" alt="GDG on Campus group at Google I/O" width="1024" height="767" loading="lazy" decoding="async">
             <div class="story-card-body">
               <span class="story-date mono-font text-cyan">MAY 2026</span>
               <h3 class="story-title">On the Ground at Google I/O 2026</h3>
@@ -726,7 +729,7 @@
 
           <!-- Story 3: Whitworth Summer Research -->
           <div class="story-card glass-card animate-on-scroll" data-story="whitworth-hof">
-            <div class="story-cover" style="background-image: url('/stories/whitworth-hof.png');"></div>
+            <img class="story-cover" src="/stories/whitworth-hof.png" alt="Whitworth Heritage Gallery website" width="1600" height="900" loading="lazy" decoding="async">
             <div class="story-card-body">
               <span class="story-date mono-font text-cyan">JUL 2026</span>
               <h3 class="story-title">Summer Research: Building the Whitworth Heritage Gallery</h3>
@@ -850,7 +853,7 @@
 
           <!-- Live GitHub telemetry — populated from github-stats.json by main.js -->
           <div class="telemetry-dashboard glass-card border-green animate-on-scroll" id="gh-telemetry">
-            <h3 class="panel-subtitle fids-font text-green">// POWERPLANT TELEMETRY &mdash; LIVE ENGINE FEED</h3>
+            <h3 class="panel-subtitle fids-font text-green">// POWERPLANT TELEMETRY &mdash; GITHUB ACTIVITY SNAPSHOT</h3>
 
             <div class="telemetry-grid mono-font">
               <div class="telemetry-stat glass-card-inset">
@@ -950,20 +953,22 @@
               <div class="form-row">
                 <div class="form-group col-6">
                   <label for="passenger-name" class="text-dim">PASSENGER NAME / FROM</label>
-                  <input type="text" id="passenger-name" placeholder="Enter your full name" required class="glass-input">
+                  <input type="text" id="passenger-name" name="name" autocomplete="name" maxlength="120" placeholder="Enter your full name" required class="glass-input">
                 </div>
                 <div class="form-group col-6">
                   <label for="passenger-email" class="text-dim">COORDINATION EMAIL</label>
-                  <input type="email" id="passenger-email" placeholder="Enter your email port" required class="glass-input">
+                  <input type="email" id="passenger-email" name="email" autocomplete="email" maxlength="254" placeholder="Enter your email port" required class="glass-input">
                 </div>
               </div>
               <div class="form-group">
                 <label for="cargo-manifest" class="text-dim">COMMUNICATION MANIFEST / MESSAGE</label>
-                <textarea id="cargo-manifest" rows="5" placeholder="Declare your messages, projects, or inquiries here..." required class="glass-input"></textarea>
+                <textarea id="cargo-manifest" name="message" maxlength="10000" rows="5" placeholder="Declare your messages, projects, or inquiries here..." required class="glass-input"></textarea>
               </div>
               <button type="submit" class="form-submit-btn bg-green text-dark font-extrabold">
                 <span>SUBMIT CUSTOMS DECLARATION</span>
               </button>
+              <p id="contact-status" class="contact-status text-dim" role="status" aria-live="polite"></p>
+              <a id="contact-email-fallback" class="text-amber" href="mailto:khanjames160@gmail.com" hidden>Send this message using your email app</a>
             </form>
           </div>
         </div>
@@ -1208,10 +1213,10 @@
   </div>
 
   <!-- Project Blueprint Details Modal (Floating Cockpit Overlay) -->
-  <div id="project-modal" class="modal-overlay">
+  <div id="project-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-project-title" aria-hidden="true" inert>
     <div class="modal-card glass-card border-cyan">
       <div class="modal-lines"></div>
-      <button class="modal-close-btn text-cyan fids-font" id="close-modal-btn">X</button>
+      <button class="modal-close-btn text-cyan fids-font" id="close-modal-btn" aria-label="Close project details">×</button>
       <div class="modal-header">
         <span class="modal-badge mono-font text-cyan border-cyan" id="modal-project-badge">SPEC-00</span>
         <h2 class="fids-font" id="modal-project-title">PROJECT SPECIFICATIONS</h2>
@@ -1241,10 +1246,10 @@
     </div>
   </div>
 
-  <div id="story-modal" class="modal-overlay">
+  <div id="story-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-story-title" aria-hidden="true" inert>
     <div class="modal-card story-modal-card glass-card border-cyan">
       <div class="modal-lines"></div>
-      <button class="modal-close-btn text-cyan fids-font" id="close-story-modal-btn">X</button>
+      <button class="modal-close-btn text-cyan fids-font" id="close-story-modal-btn" aria-label="Close story">×</button>
       <div class="story-modal-cover placeholder-cover" id="modal-story-cover">
         <span class="placeholder-icon mono-font" id="modal-story-icon">✈</span>
       </div>

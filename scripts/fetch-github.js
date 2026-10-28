@@ -46,6 +46,7 @@ const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 
 const api = async (path) => {
   const res = await fetch(`https://api.github.com${path}`, {
+    signal: AbortSignal.timeout(10000),
     headers: {
       Accept: 'application/vnd.github+json',
       'User-Agent': `${GITHUB_USER}-portfolio-build`,

@@ -31,7 +31,7 @@
 
   --text-primary: #f0f4fa;
   --text-secondary: #a0aec0;
-  --text-muted: #5e6d82;
+  --text-muted: #8a9ab0;
 
   --border-glass: rgba(255, 255, 255, 0.08);
   --border-cyan: rgba(0, 255, 255, 0.15);
@@ -486,7 +486,7 @@ body.loading-state {
 /* 1. DEPARTURE Section */
 .intro-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 24px;
   align-items: stretch;
   width: 100%;
@@ -535,6 +535,7 @@ body.loading-state {
 }
 
 .btn {
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -826,7 +827,7 @@ body.loading-state {
 /* 3. PROJECTS SECTION (Blueprints) */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
 }
 
@@ -934,7 +935,7 @@ body.loading-state {
 /* 3.5 STORIES SECTION (Blog / Flight Journal) */
 .stories-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 
@@ -956,8 +957,10 @@ body.loading-state {
 }
 
 .story-cover {
+  display: block;
   width: 100%;
   height: 140px;
+  object-fit: cover;
   background-size: cover;
   background-position: center;
   border-bottom: 1px solid rgba(0, 255, 255, 0.1);
@@ -1150,7 +1153,7 @@ body.loading-state {
 /* 4. CONTROLS SECTION */
 .controls-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 24px;
 }
 
@@ -1290,7 +1293,7 @@ body.loading-state {
     padding: 20px;
   }
   .telemetry-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .telemetry-footer {
     gap: 12px;
@@ -1361,7 +1364,7 @@ body.loading-state {
 /* 5. ARRIVAL SECTION */
 .arrival-layout {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 24px;
 }
 
@@ -1482,7 +1485,8 @@ body.loading-state {
 }
 
 textarea.glass-input {
-  resize: none;
+  resize: vertical;
+  min-height: 130px;
 }
 
 .form-submit-btn {
@@ -1596,11 +1600,11 @@ textarea.glass-input {
 
 .modal-spec-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 32px;
 }
 
-.spec-left p {
+#modal-project-details, .spec-left p {
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-secondary);
@@ -1628,6 +1632,10 @@ textarea.glass-input {
   align-items: center;
   justify-content: center;
   transition: opacity 0.5s ease;
+}
+
+#preloader[hidden] {
+  display: none;
 }
 
 .preloader-content {
@@ -1869,7 +1877,7 @@ textarea.glass-input {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   .mobile-nav-toggle {
     display: none;
   }
@@ -1956,7 +1964,7 @@ textarea.glass-input {
 
 .game-stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   text-align: center;
 }
@@ -1974,6 +1982,93 @@ textarea.glass-input {
 .stat-value {
   font-size: 20px;
   font-weight: 800;
+}
+
+/* Content must fit between the fixed instruments without intrinsic grid overflow. */
+.section-content, .section-content > *, .intro-grid > *, .controls-grid > *,
+.arrival-layout > *, .modal-spec-grid > *, .form-group, .coord-item .val {
+  min-width: 0;
+}
+.section-content, .modal-card { overflow-wrap: anywhere; }
+.hud-right-instruments { justify-self: end; }
+.hud-brand, .hud-clock { flex-shrink: 0; }
+.hud-nav { min-width: 0; }
+.nav-btn { white-space: nowrap; }
+.hud-header { gap: 16px; }
+.title-gradient { font-size: clamp(32px, 3.5vw, 54px); }
+.text-red { color: #ff8492; }
+.coord-item .label { flex: 0 0 110px; }
+.form-row > .form-group { flex: 1; }
+.boarding-header, .boarding-barcode-container { gap: 12px; flex-wrap: wrap; }
+.pass-row { gap: 12px; }
+.glass-input { font-size: 16px; }
+.form-submit-btn:disabled { opacity: 0.65; cursor: wait; }
+.contact-status { font-size: 12px; line-height: 1.6; }
+.contact-status:empty { display: none; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+.skip-link { position: fixed; top: 12px; left: 16px; z-index: 10000; padding: 12px; background: var(--bg-deep); color: var(--cyan); transform: translateY(-150%); }
+.skip-link:focus { transform: translateY(0); }
+.modal-overlay { visibility: hidden; padding: 20px; }
+.modal-overlay.active { visibility: visible; }
+.modal-card { max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; }
+.modal-header { padding-right: 32px; }
+.modal-header h2 { font-size: clamp(20px, 3vw, 28px); line-height: 1.4; }
+.modal-close-btn { width: 44px; height: 44px; top: 12px; right: 12px; z-index: 5; background: var(--bg-deep); }
+.game-hud-overlay { visibility: hidden; }
+.game-hud-overlay.active { visibility: visible; }
+.game-hud-header { flex-wrap: wrap; gap: 8px; }
+.game-mode .scroll-container { visibility: hidden; }
+.game-mode .hud-left-instruments, .game-mode .hud-right-instruments { visibility: hidden; }
+.game-mode #canvas-container { z-index: 6; }
+.flight-feedback { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(500px, calc(100% - 32px)); z-index: 20; background: var(--bg-deep); color: var(--amber); padding: 16px; border: 1px solid var(--border-amber); border-radius: 8px; font-size: 12px; }
+.flight-feedback:empty, .game-mode .flight-feedback { display: none; }
+
+@media (min-width: 1200px) {
+  .portfolio-section { padding: 120px 296px 100px 240px; }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .hud-right-instruments { display: none; }
+  .portfolio-section { padding-right: 32px; }
+  .hud-header { padding: 0 16px; }
+  .nav-btn { padding: 8px; font-size: 10px; gap: 5px; }
+  .brand-title { font-size: 12px; }
+}
+@media (max-width: 1199px) {
+  .hud-overlay { display: block; padding: 12px; }
+  .hud-header { position: relative; height: 64px; padding: 10px 16px; }
+  .hud-left-instruments, .hud-right-instruments { display: none; }
+  .portfolio-section { padding: 112px 24px 64px; }
+  .hud-brand { min-width: 0; flex-shrink: 1; }
+  .brand-text { overflow: hidden; }
+  .brand-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; margin-left: auto; background: transparent; border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary); cursor: pointer; }
+  .hud-nav { position: absolute; top: calc(100% + 8px); left: 0; right: 0; flex-direction: column; align-items: stretch; padding: 8px; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(6, 12, 26, 0.98); visibility: hidden; opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; }
+  .hud-nav.mobile-open { visibility: visible; opacity: 1; max-height: min(70dvh, 480px); overflow-y: auto; pointer-events: auto; }
+  .hud-nav .nav-btn { min-height: 44px; padding: 12px 14px; }
+}
+@media (max-width: 767px) {
+  .portfolio-section { padding: 100px 16px 60px; }
+  .welcome-block { padding: 24px; }
+  .section-title { font-size: clamp(24px, 6vw, 32px); }
+  .section-header { margin-bottom: 28px; }
+  .timeline-item { margin-left: 24px; padding: 20px; }
+  .timeline-line { left: 6px; }
+  .timeline-radar-blip { left: -24px; }
+  .company-header { align-items: flex-start; gap: 12px; }
+  .role-title { font-size: 18px; }
+  .company-name { font-size: 12px; }
+  .form-row { flex-direction: column; }
+  .form-row .col-6 { width: 100%; }
+  .coord-item { flex-direction: column; gap: 4px; }
+  .coord-item .label { flex-basis: auto; }
+  .form-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .modal-overlay { padding: 12px; }
+  .modal-card { padding: 24px; max-height: calc(100dvh - 24px); }
+  .modal-spec-grid { grid-template-columns: 1fr; }
+  .story-modal-card .modal-header, .story-modal-card .modal-body { padding-left: 24px; padding-right: 24px; }
+  .story-modal-cover { height: 160px; }
+  .float-photo { width: 100%; }
+  .game-stats-grid { gap: 8px; }
 }
 
 /* Print only definitions */
@@ -1995,6 +2090,8 @@ textarea.glass-input {
   .hud-overlay, 
   #game-hud, 
   #preloader, 
+  .skip-link,
+  .flight-feedback,
   .scroll-container, 
   .modal-overlay {
     display: none !important;
@@ -2239,7 +2336,7 @@ textarea.glass-input {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  font-family: var(--font-outfit);
+  font-family: var(--font-display);
 }
 
 .link-preview-text {
@@ -2274,7 +2371,7 @@ textarea.glass-input {
   color: white;
   font-size: 32px;
   font-weight: 800;
-  font-family: var(--font-outfit);
+  font-family: var(--font-display);
 }
 
 

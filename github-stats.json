@@ -1,39 +1,39 @@
 {
-  "generatedAt": "2026-07-23T21:26:20.542Z",
+  "generatedAt": "2026-10-28T22:06:19.206Z",
   "user": "bhasan26",
-  "windowDays": 30,
+  "windowDays": 6,
   "commitWindowDays": 30,
-  "commits7d": 12,
-  "commits30d": 57,
-  "activeRepos": 10,
+  "commits7d": 25,
+  "commits30d": 25,
+  "activeRepos": 2,
   "streak": 1,
   "weeklyCommits": [
-    4,
-    22,
-    16,
-    12
+    0,
+    0,
+    0,
+    25
   ],
-  "enginePct": 55,
-  "lastPush": "2026-07-23T21:15:12Z",
-  "publicRepos": 18,
-  "followers": 0,
+  "enginePct": 100,
+  "lastPush": "2026-10-27T21:01:40Z",
+  "publicRepos": 22,
+  "followers": 1,
   "stars": 7,
   "topLanguages": [
     {
       "name": "JavaScript",
-      "count": 7
+      "count": 6
     },
     {
       "name": "Python",
-      "count": 2
+      "count": 3
     },
     {
       "name": "C++",
-      "count": 2
+      "count": 3
     },
     {
       "name": "HTML",
-      "count": 2
+      "count": 3
     }
   ],
   "memberSince": "2024-06-26T02:53:10Z",

@@ -1,4 +1,4 @@
-import { ThreeScene } from './three-scene.js';
+import { createDialog, readHighScore, saveHighScore, steeringDirection } from './ui.js';
 // Snapshot of real GitHub activity, refreshed by scripts/fetch-github.js at
 // build time and inlined into the bundle by Vite — no runtime network call.
 import githubStats from './github-stats.json';
@@ -11,13 +11,15 @@ let activeSection = 'departure';
 let lastScrollTop = 0;
 let currentAirspeed = 320;
 let targetAirspeed = 320;
+let syncScrollState = () => {};
+let preloaderFinished = false;
 
 // Web Audio API Synthesizer state
 let audioCtx = null;
 let audioMuted = true; // Muted by default to comply with browser user-interaction policies
 
 // Game score telemetry state
-let highscore = Number(localStorage.getItem('bilal_flight_highscore')) || 0;
+let highscore = readHighScore(() => window.localStorage);
 
 // Manual flight mode needs a keyboard; touch-only devices have no way to steer.
 const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -29,8 +31,7 @@ const projectSpecs = {
     title: "Braillience AI",
     details: "An engineered stateful AI voice assistant designed to assist visually impaired students. Utilizes a high-fidelity NLP pipeline to ingest long-form transcripts and compile concise summaries. Improved campus accessibility metrics and increased resource utilization by 60% among targeted student demographics.",
     stack: ["OpenAI API", "Python", "NLP Pipeline", "Speech-to-Text", "Vercel"],
-    github: "https://github.com/bhasan26",
-    buttonText: "VIEW GITHUB PROFILE"
+    github: "https://github.com/bhasan26/Braillience"
   },
   cricketcoach: {
     badge: "SPEC-02",
@@ -93,10 +94,10 @@ const storySpecs = {
     cover: "/stories/io-group.jpg",
     body: `<p>Flew out to Shoreline Amphitheatre with the rest of the GDG on Campus crew for Google I/O 2026 — a full day of keynotes, sessions, and wandering the developer lounge between talks.</p>
       <div class="story-photo-float">
-        <div class="float-photo float-1"><img src="/stories/io-group.jpg" alt="GDG on Campus group at Google I/O 2026" /></div>
-        <div class="float-photo float-2"><img src="/stories/io-solo.jpg" alt="Standing under the Google I/O sign" /></div>
-        <div class="float-photo float-3"><img src="/stories/io-lounge.jpg" alt="The developer lounge at Google I/O" /></div>
-        <div class="float-photo float-4"><img src="/stories/io-bike.jpg" alt="Riding a Google campus bike" /></div>
+        <div class="float-photo float-1"><img loading="lazy" decoding="async" src="/stories/io-group.jpg" alt="GDG on Campus group at Google I/O 2026" /></div>
+        <div class="float-photo float-2"><img loading="lazy" decoding="async" src="/stories/io-solo.jpg" alt="Standing under the Google I/O sign" /></div>
+        <div class="float-photo float-3"><img loading="lazy" decoding="async" src="/stories/io-lounge.jpg" alt="The developer lounge at Google I/O" /></div>
+        <div class="float-photo float-4"><img loading="lazy" decoding="async" src="/stories/io-bike.jpg" alt="Riding a Google campus bike" /></div>
       </div>
       <p>Highlight of the trip was rolling around the Google campus on one of their classic four-color bikes between sessions — propeller hat included. Good reminder that the best conferences leave room for the in-between moments, not just the stage time.</p>
 
@@ -119,11 +120,11 @@ const storySpecs = {
       </ul>
 
       <h4 class="text-cyan">💻 Major Developer Announcements</h4>
-      <p>If your blog caters to devs, this was arguably the most practical section of the keynote:</p>
+      <p>The developer announcements focused on tools for building, deploying, and maintaining applications:</p>
       <ul>
         <li><strong>Google Antigravity 2.0:</strong> Google's agent-first development platform and new CLI allow devs to orchestrate and spin up sandboxed "subagents" to write, migrate, and optimize full codebases safely.</li>
         <li><strong>Vibe Coding in AI Studio:</strong> You can now natively vibe code Android apps inside Google AI Studio with native Kotlin support, one-click deployments to Cloud Run, and full export capabilities to Antigravity.</li>
-        <li><strong>Android Migration Agent:</strong> A killer tool previewed for Android Studio that can take code written in iOS, React Native, or web frameworks and automatically migrate it to native Kotlin in hours instead of weeks.</li>
+        <li><strong>Android Migration Agent:</strong> A tool previewed for Android Studio that can take code written in iOS, React Native, or web frameworks and automatically migrate it to native Kotlin in hours instead of weeks.</li>
         <li><strong>WebMCP:</strong> A newly proposed open web standard that exposes structured tools (like JavaScript functions and HTML forms) so browser-based AI agents can execute complex tasks precisely.</li>
       </ul>
 
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPreloader, setupClock, setupRadar, setupFidsAnimations,
     setupProjectModals, setupStoryModals, setupContactForm,
     setupAudioSynth, setupHighScoreDisplay, setupStaticActions,
-    setupGitHubTelemetry, setupSolarReadout
+    setupGitHubTelemetry, setupSolarReadout, setupScrollControls
   ];
   systems.forEach(fn => {
     try {
@@ -169,8 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 2. Preloader Animation Sequence
 function setupPreloader() {
-  const preloader = document.getElementById('preloader');
   const statusText = document.getElementById('preloader-status');
+
+  // The portfolio is ready independently of the optional 3D download.
+  setTimeout(finishPreloader, 2500);
   
   let progress = 0;
   const interval = setInterval(() => {
@@ -184,51 +187,35 @@ function setupPreloader() {
   }, 80);
 }
 
-function initializeThreeScene() {
+function finishPreloader() {
+  if (preloaderFinished) return;
+  preloaderFinished = true;
+  const preloader = document.getElementById('preloader');
+  preloader.style.opacity = '0';
+  preloader.style.pointerEvents = 'none';
+  preloader.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('loading-state');
+  setTimeout(() => { preloader.hidden = true; }, prefersReducedMotion ? 0 : 500);
+  flipText(document.getElementById('fids-main-title'), 'BILAL HASAN');
+}
+
+async function initializeThreeScene(loadScene = () => import('./three-scene.js')) {
   const statusText = document.getElementById('preloader-status');
   statusText.textContent = "Loading 3D Flight Engines...";
-  
-  setTimeout(() => {
-    try {
-      threeSceneInstance = new ThreeScene('canvas-container', (message, pct) => {
-        statusText.textContent = `${message} (${pct}%)`;
-      });
-      
-      // Fully load
-      setTimeout(() => {
-        const preloader = document.getElementById('preloader');
-        preloader.style.opacity = 0;
-        document.body.classList.remove('loading-state');
-        
-        setTimeout(() => {
-          preloader.style.display = 'none';
-          flipText(document.getElementById('fids-main-title'), 'BILAL HASAN');
-        }, 500);
-        
-        setupScrollControls();
-        setupManualFlightTriggers();
-      }, 600);
-      
-    } catch (e) {
-      console.error("Three.js initialization failure:", e);
-      statusText.textContent = "Error loading WebGL. Starting in 2D mode...";
-      setTimeout(() => {
-        const preloader = document.getElementById('preloader');
-        preloader.style.opacity = 0;
-        document.body.classList.remove('loading-state');
-        setTimeout(() => { preloader.style.display = 'none'; }, 500);
-
-        // The page still has to be navigable without WebGL — nav buttons, the
-        // mobile menu and the HUD instruments all live in setupScrollControls.
-        setupScrollControls();
-
-        // No 3D scene means no manual flight mode; hide the override switch
-        // instead of leaving a button that silently does nothing.
-        const gameBtn = document.getElementById('game-override-btn');
-        if (gameBtn) gameBtn.style.display = 'none';
-      }, 1000);
-    }
-  }, 200);
+  try {
+    const { ThreeScene } = await loadScene();
+    threeSceneInstance = new ThreeScene('canvas-container', (message, pct) => {
+      statusText.textContent = `${message} (${pct}%)`;
+    });
+    syncScrollState();
+    setupManualFlightTriggers();
+  } catch (error) {
+    console.error('Three.js initialization failure:', error);
+    statusText.textContent = 'Starting in 2D mode.';
+    document.getElementById('game-override-btn').style.display = 'none';
+  } finally {
+    finishPreloader();
+  }
 }
 
 // 2b. Listeners that used to live in inline `onclick` attributes. The deployed
@@ -239,7 +226,7 @@ function setupStaticActions() {
   if (takeoffCta) {
     takeoffCta.addEventListener('click', () => {
       playSynthAudio('click');
-      document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('experience')?.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
     });
   }
 
@@ -247,12 +234,6 @@ function setupStaticActions() {
   // not also pop the card's modal.
   document.querySelectorAll('.link-preview-box').forEach(link => {
     link.addEventListener('click', (e) => e.stopPropagation());
-  });
-
-  // Escape closes whichever modal is open.
-  window.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
   });
 }
 
@@ -313,7 +294,7 @@ function setupGitHubTelemetry() {
 
       const label = document.createElement('span');
       label.className = 'spark-label';
-      label.textContent = weeksAgo === 0 ? 'NOW' : `-${weeksAgo}W`;
+      label.textContent = weeksAgo === 0 ? 'LATEST' : `-${weeksAgo}W`;
 
       bar.append(fill, label);
       sparkline.appendChild(bar);
@@ -405,9 +386,32 @@ function setupScrollControls() {
   const mobileNavToggle = document.getElementById('mobile-nav-toggle');
   const hudNav = document.querySelector('.hud-nav');
   if (mobileNavToggle && hudNav) {
+    const compact = window.matchMedia('(max-width: 1199px)');
+    const syncMenu = () => {
+      hudNav.inert = compact.matches && !hudNav.classList.contains('mobile-open');
+    };
+    const closeMenu = () => {
+      const restoreFocus = compact.matches && hudNav.contains(document.activeElement);
+      hudNav.classList.remove('mobile-open');
+      mobileNavToggle.setAttribute('aria-expanded', 'false');
+      syncMenu();
+      if (restoreFocus) mobileNavToggle.focus({ preventScroll: true });
+    };
+    compact.addEventListener('change', closeMenu);
+    syncMenu();
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.hud-header')) closeMenu();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && hudNav.classList.contains('mobile-open')) {
+        closeMenu();
+        mobileNavToggle.focus();
+      }
+    });
     mobileNavToggle.addEventListener('click', () => {
       const isOpen = hudNav.classList.toggle('mobile-open');
       mobileNavToggle.setAttribute('aria-expanded', String(isOpen));
+      syncMenu();
     });
   }
 
@@ -426,12 +430,15 @@ function setupScrollControls() {
       const targetSection = document.getElementById(targetSectionId);
 
       if (targetSection) {
-        targetSection.scrollIntoView({ behavior: 'smooth' });
+        targetSection.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+        targetSection.tabIndex = -1;
+        targetSection.focus({ preventScroll: true });
       }
 
       if (hudNav && mobileNavToggle) {
         hudNav.classList.remove('mobile-open');
         mobileNavToggle.setAttribute('aria-expanded', 'false');
+        hudNav.inert = window.matchMedia('(max-width: 1199px)').matches;
       }
     });
 
@@ -442,7 +449,7 @@ function setupScrollControls() {
   });
   
   // Track scroll metrics
-  scrollContainer.addEventListener('scroll', () => {
+  syncScrollState = () => {
     if (threeSceneInstance && threeSceneInstance.gameActive) return; // Freeze scroll inputs in game mode
     
     const scrollTop = scrollContainer.scrollTop;
@@ -492,8 +499,10 @@ function setupScrollControls() {
         if (btn.id === 'game-override-btn') return;
         if (btn.getAttribute('data-section') === activeSection) {
           btn.classList.add('active');
+          btn.setAttribute('aria-current', 'location');
         } else {
           btn.classList.remove('active');
+          btn.removeAttribute('aria-current');
         }
       });
       
@@ -526,7 +535,11 @@ function setupScrollControls() {
         statusIndicator.className = "brand-title fids-font text-green glow-green";
       }
     }
-  });
+  };
+  scrollContainer.addEventListener('scroll', syncScrollState, { passive: true });
+  window.addEventListener('resize', syncScrollState);
+  window.addEventListener('pageshow', syncScrollState);
+  syncScrollState();
   
   // Speedometer frame sweeps
   setInterval(() => {
@@ -748,6 +761,10 @@ const activeFlips = new WeakMap();
 
 function flipText(element, finalString) {
   if (!element) return;
+  if (prefersReducedMotion) {
+    element.textContent = finalString;
+    return;
+  }
 
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/_➔[] ";
   const originalText = finalString.trim().toUpperCase();
@@ -757,7 +774,8 @@ function flipText(element, finalString) {
   element.dataset.flipText = originalText;
   clearInterval(activeFlips.get(element));
 
-  element.textContent = "";
+  element.setAttribute('aria-label', originalText);
+  element.textContent = originalText;
 
   let currentString = Array(originalText.length).fill(' ');
   let iteration = 0;
@@ -795,6 +813,9 @@ function setupProjectModals() {
   const blueprintCards = document.querySelectorAll('.project-blueprint-card');
   const modal = document.getElementById('project-modal');
   const closeModalBtn = document.getElementById('close-modal-btn');
+  const dialog = createDialog(modal, closeModalBtn, [
+    document.getElementById('scroll-main'), document.getElementById('hud')
+  ]);
   
   const modalBadge = document.getElementById('modal-project-badge');
   const modalTitle = document.getElementById('modal-project-title');
@@ -803,6 +824,10 @@ function setupProjectModals() {
   const modalGithub = document.getElementById('modal-project-github');
   
   blueprintCards.forEach(card => {
+    const trigger = card.querySelector('button');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-controls', modal.id);
+    trigger.setAttribute('aria-label', `Inspect ${card.querySelector('h3').textContent}`);
     card.addEventListener('click', () => {
       playSynthAudio('click');
       const projId = card.getAttribute('data-project');
@@ -827,7 +852,7 @@ function setupProjectModals() {
           buttonSpan.textContent = specs.buttonText || "GITHUB REPOSITORY";
         }
         
-        modal.classList.add('active');
+        dialog.open(trigger);
         flipText(modalTitle, specs.title);
       }
     });
@@ -837,17 +862,6 @@ function setupProjectModals() {
     });
   });
   
-  closeModalBtn.addEventListener('click', () => {
-    playSynthAudio('click');
-    modal.classList.remove('active');
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      playSynthAudio('click');
-      modal.classList.remove('active');
-    }
-  });
 }
 
 // 7b. Flight Journal Modals (Stories / Blog)
@@ -855,6 +869,9 @@ function setupStoryModals() {
   const storyCards = document.querySelectorAll('.story-card');
   const modal = document.getElementById('story-modal');
   const closeModalBtn = document.getElementById('close-story-modal-btn');
+  const dialog = createDialog(modal, closeModalBtn, [
+    document.getElementById('scroll-main'), document.getElementById('hud')
+  ]);
 
   const modalDate = document.getElementById('modal-story-date');
   const modalTitle = document.getElementById('modal-story-title');
@@ -864,6 +881,10 @@ function setupStoryModals() {
   const modalIcon = document.getElementById('modal-story-icon');
 
   storyCards.forEach(card => {
+    const trigger = card.querySelector('button');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-controls', modal.id);
+    trigger.setAttribute('aria-label', `Read ${card.querySelector('h3').textContent}`);
     card.addEventListener('click', () => {
       playSynthAudio('click');
       const storyId = card.getAttribute('data-story');
@@ -890,7 +911,7 @@ function setupStoryModals() {
           modalIcon.textContent = story.icon || '✈';
         }
 
-        modal.classList.add('active');
+        dialog.open(trigger);
         flipText(modalTitle, story.title.toUpperCase());
       }
     });
@@ -900,93 +921,58 @@ function setupStoryModals() {
     });
   });
 
-  closeModalBtn.addEventListener('click', () => {
-    playSynthAudio('click');
-    modal.classList.remove('active');
-  });
-
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      playSynthAudio('click');
-      modal.classList.remove('active');
-    }
-  });
 }
 
-// 8. Customs Form submission with mock Formspree routing API
+// 8. Contact transmission: preserve drafts on failure and announce the outcome.
 function setupContactForm() {
   const form = document.getElementById('customs-contact-form');
   if (!form) return;
-  
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  const status = document.getElementById('contact-status');
+  const fallback = document.getElementById('contact-email-fallback');
+  const submitBtn = form.querySelector('.form-submit-btn');
+  const originalText = submitBtn.textContent.trim();
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submitBtn.disabled || !form.reportValidity()) return;
+    const name = form.elements.name.value.trim();
+    const email = form.elements.email.value.trim();
+    const message = form.elements.message.value.trim();
+    if (!name || !message) {
+      status.textContent = 'Please enter your name and a message.';
+      return;
+    }
     playSynthAudio('click');
-    
-    const passengerName = document.getElementById('passenger-name').value;
-    const passengerEmail = document.getElementById('passenger-email').value;
-    const cargoManifest = document.getElementById('cargo-manifest').value;
-    
-    const submitBtn = form.querySelector('.form-submit-btn');
-    const originalText = submitBtn.innerHTML;
-    
     submitBtn.disabled = true;
-    submitBtn.innerHTML = "<span>TRANSMITTING TELEMETRY...</span>";
-    
-    const formspreeFormId = "xovqdbyq";
-
-    fetch(`https://formspree.io/f/${formspreeFormId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        name: passengerName,
-        email: passengerEmail,
-        message: cargoManifest
-      })
-    })
-    .then((res) => {
-      if (!res.ok) throw new Error(`Formspree responded with ${res.status}`);
-      submitBtn.className = "form-submit-btn bg-cyan text-dark font-extrabold";
-      submitBtn.innerHTML = "<span>TRANSMISSION SUCCESSFUL ✓</span>";
-      
-      const stampEl = document.querySelector('.passport-stamp');
-      stampEl?.classList.add('animate-pulse');
-      playSynthAudio('chime');
-      
-      alert(`Customs Declaration Transmitted!\nPassenger: ${passengerName}\nCoordinates logged successfully to GEG.`);
+    form.setAttribute('aria-busy', 'true');
+    submitBtn.textContent = 'TRANSMITTING…';
+    status.textContent = 'Sending your message…';
+    fallback.hidden = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch('https://formspree.io/f/xovqdbyq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`Contact service returned ${response.status}`);
+      status.textContent = 'Message sent. Thank you for reaching out!';
       form.reset();
-      
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitBtn.className = "form-submit-btn bg-green text-dark font-extrabold";
-        submitBtn.innerHTML = originalText;
-        stampEl?.classList.remove('animate-pulse');
-      }, 3000);
-    })
-    .catch((err) => {
-      // The message did NOT get through — never report success here, or a real
-      // visitor's note is dropped while they believe it was sent. Fall back to
-      // their own mail client with the message pre-filled.
-      console.error("Contact form transmission failed:", err);
-
-      submitBtn.className = "form-submit-btn bg-amber text-dark font-extrabold";
-      submitBtn.innerHTML = "<span>TRANSMISSION FAILED ✕</span>";
-
-      const mailto = `mailto:khanjames160@gmail.com`
-        + `?subject=${encodeURIComponent(`Portfolio contact from ${passengerName}`)}`
-        + `&body=${encodeURIComponent(`${cargoManifest}\n\nReply to: ${passengerEmail}`)}`;
-
-      alert(
-        `Transmission failed — your message was not delivered.\n\n` +
-        `Opening your mail client so it isn't lost. You can also reach me directly at khanjames160@gmail.com.`
-      );
-      window.location.href = mailto;
-
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitBtn.className = "form-submit-btn bg-green text-dark font-extrabold";
-        submitBtn.innerHTML = originalText;
-      }, 3000);
-    });
+      playSynthAudio('chime');
+    } catch (error) {
+      status.textContent = 'Your message was not sent. Your draft is still in the form. Try again or send it by email.';
+      fallback.href = 'mailto:khanjames160@gmail.com'
+        + `?subject=${encodeURIComponent(`Portfolio contact from ${name}`)}`
+        + `&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
+      fallback.hidden = false;
+    } finally {
+      clearTimeout(timeout);
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+      form.removeAttribute('aria-busy');
+    }
   });
 }
 
@@ -1002,11 +988,19 @@ function setupAudioSynth() {
   soundToggleBtn.addEventListener('click', () => {
     // Initialize AudioContext on first user interaction
     if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        soundToggleBtn.disabled = true;
+        soundToggleBtn.title = 'Audio is unavailable in this browser';
+        return;
+      }
+      audioCtx = new AudioContext();
     }
     
     // Toggle audio
     audioMuted = !audioMuted;
+    soundToggleBtn.setAttribute('aria-pressed', String(!audioMuted));
+    soundToggleBtn.setAttribute('aria-label', audioMuted ? 'Enable cockpit audio' : 'Mute cockpit audio');
     
     if (audioMuted) {
       soundToggleBtn.classList.remove('active');
@@ -1120,27 +1114,37 @@ function setupManualFlightTriggers() {
     return;
   }
 
+  gameBtn.disabled = false;
+
   // Highscore display
   setupHighScoreDisplay();
 
+  document.getElementById('exit-game-btn').addEventListener('click', () => gameBtn.click());
   let gameOverHandled = false;
 
   gameBtn.addEventListener('click', () => {
-    // Initialize Web Audio Context if needed
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
     const active = !threeSceneInstance.gameActive;
     gameOverHandled = false;
 
     playSynthAudio('click');
     threeSceneInstance.toggleGameMode(active);
+    document.body.classList.toggle('game-mode', active);
+    document.getElementById('scroll-main').inert = active;
+    gameBtn.setAttribute('aria-pressed', String(active));
+    gameHud.setAttribute('aria-hidden', String(!active));
+    gameHud.inert = !active;
+    document.querySelector('.hud-nav').classList.remove('mobile-open');
+    document.getElementById('mobile-nav-toggle').setAttribute('aria-expanded', 'false');
+    document.querySelector('.hud-nav').inert = window.matchMedia('(max-width: 1199px)').matches;
     
     if (active) {
       // Game activated
       gameBtn.classList.add('active');
       gameHud.classList.add('active');
+      document.getElementById('exit-game-btn').focus({ preventScroll: true });
+      document.getElementById('game-score').textContent = '0';
+      document.getElementById('game-energy').textContent = '100%';
+      document.getElementById('game-energy').className = 'stat-value text-green glow-green';
       
       // Update Autopilot Instrument Led to warning amber override state
       autopilotLed.className = "indicator-led bg-amber animate-pulse";
@@ -1150,6 +1154,7 @@ function setupManualFlightTriggers() {
       // Disengage other nav scroll controls
       document.querySelectorAll('.hud-nav .nav-btn').forEach(btn => {
         if (btn.id !== 'game-override-btn') {
+          btn.disabled = true;
           btn.style.opacity = '0.3';
           btn.style.pointerEvents = 'none';
         }
@@ -1183,7 +1188,7 @@ function setupManualFlightTriggers() {
         // High score updates
         if (stats.score > highscore) {
           highscore = stats.score;
-          localStorage.setItem('bilal_flight_highscore', highscore);
+          saveHighScore(() => window.localStorage, highscore);
           document.getElementById('game-highscore').textContent = highscore;
         }
         
@@ -1192,7 +1197,7 @@ function setupManualFlightTriggers() {
         if (stats.gameOver && !gameOverHandled) {
           gameOverHandled = true;
           playSynthAudio('click');
-          alert(`Telemetry warning: Cockpit fuel critical!\nScore achieved: ${stats.score} points.`);
+          document.getElementById('flight-feedback').textContent = `Flight complete. Score: ${stats.score} points. Select Manual Flight to play again.`;
 
           // Disable game
           gameBtn.click();
@@ -1209,6 +1214,7 @@ function setupManualFlightTriggers() {
       autopilotText.className = "status-text glow-text text-green";
       
       document.querySelectorAll('.hud-nav .nav-btn').forEach(btn => {
+        btn.disabled = false;
         btn.style.opacity = '';
         btn.style.pointerEvents = '';
       });
@@ -1219,29 +1225,42 @@ function setupManualFlightTriggers() {
       
       // Reset keyboard inputs
       threeSceneInstance.keyboardInput = { up: false, down: false, left: false, right: false };
+      const returnTarget = window.matchMedia('(max-width: 1199px)').matches
+        ? document.getElementById('mobile-nav-toggle') : gameBtn;
+      returnTarget.focus({ preventScroll: true });
     }
   });
 }
 
-function handleGameKeyDown(e) {
-  if (!threeSceneInstance) return;
-  const key = e.key.toLowerCase();
-  
-  if (key === 'w' || e.key === 'ArrowUp') threeSceneInstance.keyboardInput.up = true;
-  if (key === 's' || e.key === 'ArrowDown') threeSceneInstance.keyboardInput.down = true;
-  if (key === 'a' || e.key === 'ArrowLeft') threeSceneInstance.keyboardInput.left = true;
-  if (key === 'd' || e.key === 'ArrowRight') threeSceneInstance.keyboardInput.right = true;
+function handleGameKeyDown(event) {
+  if (!threeSceneInstance?.gameActive) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    document.getElementById('game-override-btn').click();
+    return;
+  }
+  const direction = steeringDirection(event.key);
+  if (direction) {
+    event.preventDefault();
+    threeSceneInstance.keyboardInput[direction] = true;
+  }
 }
 
-function handleGameKeyUp(e) {
+function handleGameKeyUp(event) {
   if (!threeSceneInstance) return;
-  const key = e.key.toLowerCase();
-  
-  if (key === 'w' || e.key === 'ArrowUp') threeSceneInstance.keyboardInput.up = false;
-  if (key === 's' || e.key === 'ArrowDown') threeSceneInstance.keyboardInput.down = false;
-  if (key === 'a' || e.key === 'ArrowLeft') threeSceneInstance.keyboardInput.left = false;
-  if (key === 'd' || e.key === 'ArrowRight') threeSceneInstance.keyboardInput.right = false;
+  const direction = steeringDirection(event.key);
+  if (direction) {
+    event.preventDefault();
+    threeSceneInstance.keyboardInput[direction] = false;
+  }
 }
+
+// A released key in another tab must never leave steering stuck on return.
+window.addEventListener('blur', () => {
+  if (threeSceneInstance) {
+    threeSceneInstance.keyboardInput = { up: false, down: false, left: false, right: false };
+  }
+});
 
 function setupHighScoreDisplay() {
   const highscoreEl = document.getElementById('game-highscore');

@@ -375,6 +375,10 @@ export class ThreeScene {
   
   toggleGameMode(active) {
     this.gameActive = active;
+    this.lastFrameTime = undefined;
+    gsap.killTweensOf(this.camera.position);
+    gsap.killTweensOf(this.scene.background);
+    gsap.killTweensOf(this.scene.fog.color);
     
     if (active) {
       this.gameScore = 0;
@@ -390,8 +394,8 @@ export class ThreeScene {
       gsap.to(this.scene.background, {
         r: 0.01, g: 0.02, b: 0.06, duration: 1.0
       });
-      gsap.to(this.scene.fog, {
-        color: 0x030610, duration: 1.0
+      gsap.to(this.scene.fog.color, {
+        r: 3 / 255, g: 6 / 255, b: 16 / 255, duration: 1.0
       });
       this.ambientLight.color.setHex(0x1a2e4d);
       this.dirLight.color.setHex(0x00ffff);
@@ -406,8 +410,7 @@ export class ThreeScene {
       this.gates.forEach(g => g.visible = true);
 
       // Remove game rings
-      this.gameRings.forEach(ring => this.scene.remove(ring));
-      this.gameRings = [];
+      this.clearGameRings();
 
       // Trigger camera reset to current scroll coordinate
       const scrollMain = document.getElementById('scroll-main');
@@ -417,9 +420,18 @@ export class ThreeScene {
     }
   }
   
-  spawnGameRings() {
+  clearGameRings() {
+    // Rings share one geometry and material; dispose each resource once.
+    const geometries = new Set(this.gameRings.map(ring => ring.geometry));
+    const materials = new Set(this.gameRings.map(ring => ring.material));
     this.gameRings.forEach(ring => this.scene.remove(ring));
+    geometries.forEach(geometry => geometry.dispose());
+    materials.forEach(material => material.dispose());
     this.gameRings = [];
+  }
+
+  spawnGameRings() {
+    this.clearGameRings();
     
     const ringGeom = new THREE.TorusGeometry(1.6, 0.12, 8, 24);
     const ringMat = new THREE.MeshBasicMaterial({ 
@@ -591,9 +603,20 @@ export class ThreeScene {
     }
   }
   
-  animate(timestamp) {
-    requestAnimationFrame(this.animate.bind(this));
-    
+  animate(timestamp = 0) {
+    this.boundAnimate ??= this.animate.bind(this);
+    requestAnimationFrame(this.boundAnimate);
+    if (document.hidden) {
+      this.lastFrameTime = undefined;
+      return;
+    }
+    // Normalize physics to 60 Hz and cap long frames after a suspended tab.
+    const frameScale = this.lastFrameTime === undefined ? 1
+      : Math.min(Math.max((timestamp - this.lastFrameTime) / (1000 / 60), 0), 3);
+    this.lastFrameTime = timestamp;
+    const follow = 1 - Math.pow(1 - 0.08, frameScale);
+    const bank = 1 - Math.pow(1 - 0.1, frameScale);
+
     const time = timestamp * 0.001 || 0;
     
     const ambientMotion = !this.reducedMotion || this.gameActive;
@@ -622,11 +645,11 @@ export class ThreeScene {
         // Translate coordinates
         const speedX = 0.16;
         const speedY = 0.12;
-        this.planeGroup.position.x += dx * speedX;
-        this.planeGroup.position.y += dy * speedY;
+        this.planeGroup.position.x += dx * speedX * frameScale;
+        this.planeGroup.position.y += dy * speedY * frameScale;
         
         // Flight simulation moving forward
-        this.planeGroup.position.z -= 0.35;
+        this.planeGroup.position.z -= 0.35 * frameScale;
         
         // Clamping constraints inside viewport bounds
         this.planeGroup.position.x = THREE.MathUtils.clamp(this.planeGroup.position.x, -8, 8);
@@ -635,14 +658,14 @@ export class ThreeScene {
         // Dynamic bank roll/pitch attitude rotations
         const targetRoll = -dx * 0.55;
         const targetPitch = dy * 0.3;
-        this.planeGroup.rotation.z = THREE.MathUtils.lerp(this.planeGroup.rotation.z, targetRoll, 0.1);
-        this.planeGroup.rotation.x = THREE.MathUtils.lerp(this.planeGroup.rotation.x, targetPitch, 0.1);
-        this.planeGroup.rotation.y = THREE.MathUtils.lerp(this.planeGroup.rotation.y, dx * 0.25, 0.1);
+        this.planeGroup.rotation.z = THREE.MathUtils.lerp(this.planeGroup.rotation.z, targetRoll, bank);
+        this.planeGroup.rotation.x = THREE.MathUtils.lerp(this.planeGroup.rotation.x, targetPitch, bank);
+        this.planeGroup.rotation.y = THREE.MathUtils.lerp(this.planeGroup.rotation.y, dx * 0.25, bank);
         
         // Orbit camera following smoothly behind
-        this.camera.position.x = THREE.MathUtils.lerp(this.camera.position.x, this.planeGroup.position.x, 0.08);
-        this.camera.position.y = THREE.MathUtils.lerp(this.camera.position.y, this.planeGroup.position.y + 1.8, 0.08);
-        this.camera.position.z = THREE.MathUtils.lerp(this.camera.position.z, this.planeGroup.position.z + 8, 0.08);
+        this.camera.position.x = THREE.MathUtils.lerp(this.camera.position.x, this.planeGroup.position.x, follow);
+        this.camera.position.y = THREE.MathUtils.lerp(this.camera.position.y, this.planeGroup.position.y + 1.8, follow);
+        this.camera.position.z = THREE.MathUtils.lerp(this.camera.position.z, this.planeGroup.position.z + 8, follow);
         this.camera.lookAt(this.planeGroup.position.x, this.planeGroup.position.y - 0.5, this.planeGroup.position.z - 8);
         
         // Loop cloud coordinates relative to flight progress
@@ -657,7 +680,7 @@ export class ThreeScene {
         
         // Looping rings & Collision verification
         this.gameRings.forEach(ring => {
-          ring.rotation.z += ring.userData.spinSpeed;
+          ring.rotation.z += ring.userData.spinSpeed * frameScale;
           
           // Re-spawn ring far ahead if plane flew past
           if (ring.position.z > this.planeGroup.position.z + 10) {
@@ -692,7 +715,7 @@ export class ThreeScene {
         });
         
         // Energy consumption rate
-        this.gameEnergy -= 0.06;
+        this.gameEnergy -= 0.06 * frameScale;
         if (this.gameEnergy <= 0) {
           this.gameEnergy = 0;
           if (this.onGameUpdate) {
@@ -762,9 +785,9 @@ export class ThreeScene {
     const finalSpeed = baseSpeed + scrollInducedSpeed;
     
     this.clouds.forEach(cloud => {
-      cloud.position.z += cloud.userData.speedZ * finalSpeed * 2;
+      cloud.position.z += cloud.userData.speedZ * finalSpeed * 2 * frameScale;
       const offset = cloud.userData.wiggleOffset;
-      if (ambientMotion) cloud.position.y += Math.sin(time + offset) * 0.005;
+      if (ambientMotion) cloud.position.y += Math.sin(time + offset) * 0.005 * frameScale;
       
       if (this.planeGroup && cloud.position.z > this.planeGroup.position.z + 20) {
         cloud.position.z = this.planeGroup.position.z - 150;
