@@ -16,22 +16,23 @@ export function saveHighScore(storage, score) {
   }
 }
 
-export function createDialog(modal, closeButton, background) {
+export function createDialog(modal, closeButton, background, { onClose = () => {} } = {}) {
   const document = modal.ownerDocument;
   let opener;
   const focusable = () => [...modal.querySelectorAll('button, a[href], input, textarea, [tabindex="0"]')]
     .filter(element => !element.disabled && !element.hidden);
 
-  function close() {
+  function close({ notify = true, restoreFocus = true } = {}) {
     if (!modal.classList.contains('active')) return;
     modal.classList.remove('active');
     modal.inert = true;
     modal.setAttribute('aria-hidden', 'true');
     background.forEach(element => { element.inert = false; });
-    opener?.focus({ preventScroll: true });
+    if (restoreFocus) opener?.focus({ preventScroll: true });
+    if (notify) onClose();
   }
 
-  closeButton.addEventListener('click', close);
+  closeButton.addEventListener('click', () => close());
   modal.addEventListener('click', event => {
     if (event.target === modal) close();
   });

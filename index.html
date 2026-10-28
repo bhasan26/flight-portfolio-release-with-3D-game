@@ -215,12 +215,20 @@
   </div>
 
   <!-- Game HUD cockpit telemetry screen (Initially Hidden) -->
+  <div id="preferences-controls" class="preferences-controls">
+    <button class="btn btn-secondary motion-toggle" type="button" aria-pressed="false">PAUSE ANIMATIONS</button>
+  </div>
   <div id="game-hud" class="game-hud-overlay mono-font glass-card border-amber" aria-hidden="true" inert>
     <div class="game-hud-header">
       <span class="text-amber font-bold glow-amber">// MANUAL OVERRIDE ENGAGED</span>
-      <span class="game-instructions text-dim">STEER: [WASD] or [ARROWS] | EXIT: [ESC]</span>
+      <span class="game-instructions text-dim">WASD / ARROWS OR DIRECTION PAD · P: PAUSE · ESC: EXIT</span>
     </div>
-    <button id="exit-game-btn" class="btn btn-secondary" type="button">EXIT FLIGHT (ESC)</button>
+    <div class="game-actions">
+      <button id="pause-game-btn" class="btn btn-secondary" type="button" aria-pressed="false">PAUSE</button>
+      <button id="restart-game-btn" class="btn btn-secondary" type="button">RESTART</button>
+      <button id="exit-game-btn" class="btn btn-secondary" type="button">EXIT FLIGHT</button>
+    </div>
+    <p id="game-status" class="game-status text-amber" role="status">Fly through rings to score and refuel.</p>
     <div class="game-stats-grid">
       <div class="stat-box">
         <span class="hud-label">SCORE</span>
@@ -234,6 +242,13 @@
         <span class="hud-label">HIGH RECORD</span>
         <span class="stat-value text-amber glow-amber" id="game-highscore">0</span>
       </div>
+    </div>
+    <div class="touch-steering" role="group" aria-label="Flight direction pad">
+      <button class="steer-btn steer-up" type="button" data-steer="up" aria-label="Steer up" aria-pressed="false">↑</button>
+      <button class="steer-btn steer-left" type="button" data-steer="left" aria-label="Steer left" aria-pressed="false">←</button>
+      <span class="steer-center" aria-hidden="true">✈</span>
+      <button class="steer-btn steer-right" type="button" data-steer="right" aria-label="Steer right" aria-pressed="false">→</button>
+      <button class="steer-btn steer-down" type="button" data-steer="down" aria-label="Steer down" aria-pressed="false">↓</button>
     </div>
   </div>
 
@@ -262,6 +277,7 @@
                   <path d="M12 5v14M19 12l-7 7-7-7"/>
                 </svg>
               </button>
+              <a class="btn btn-secondary" href="#projects" data-nav-section="projects">VIEW PROJECTS</a>
             </div>
           </div>
 
@@ -1239,6 +1255,8 @@
               <a href="#" target="_blank" rel="noopener noreferrer" id="modal-project-github" class="btn btn-secondary text-cyan">
                 <span>GITHUB REPOSITORY</span>
               </a>
+              <button id="copy-project-link" class="btn btn-secondary copy-link-btn" type="button" data-share-type="project" aria-describedby="project-share-status">COPY PROJECT LINK</button>
+              <p id="project-share-status" class="share-status" role="status"></p>
             </div>
           </div>
         </div>
@@ -1249,12 +1267,22 @@
   <div id="story-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-story-title" aria-hidden="true" inert>
     <div class="modal-card story-modal-card glass-card border-cyan">
       <div class="modal-lines"></div>
-      <button class="modal-close-btn text-cyan fids-font" id="close-story-modal-btn" aria-label="Close story">×</button>
+      <div class="story-reading-toolbar">
+        <div class="story-reading-controls">
+          <span id="story-progress-label" class="mono-font text-dim" aria-hidden="true">0% READ</span>
+          <button class="btn btn-secondary motion-toggle" type="button" aria-pressed="false">PAUSE ANIMATIONS</button>
+          <button class="modal-close-btn text-cyan fids-font" id="close-story-modal-btn" aria-label="Close story">×</button>
+        </div>
+        <div id="story-reading-progress" class="story-reading-progress" role="progressbar" aria-label="Story reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="story-progress-fill"></div>
+        </div>
+      </div>
       <div class="story-modal-cover placeholder-cover" id="modal-story-cover">
         <span class="placeholder-icon mono-font" id="modal-story-icon">✈</span>
       </div>
       <div class="modal-header">
         <span class="modal-badge mono-font text-cyan border-cyan" id="modal-story-date">JUN 2026</span>
+        <span id="story-reading-time" class="story-reading-time mono-font" title="Estimated at 200 words per minute">1 MIN READ</span>
         <h2 class="fids-font" id="modal-story-title">STORY TITLE</h2>
       </div>
       <div class="modal-body mono-font">
@@ -1264,6 +1292,8 @@
         <div class="story-tags mono-font" id="modal-story-tags" style="margin-top: 20px;">
           <!-- Dynamically populated -->
         </div>
+        <button id="copy-story-link" class="btn btn-secondary copy-link-btn" type="button" data-share-type="story" aria-describedby="story-share-status">COPY STORY LINK</button>
+        <p id="story-share-status" class="share-status" role="status"></p>
       </div>
     </div>
   </div>

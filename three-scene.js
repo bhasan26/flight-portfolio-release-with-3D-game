@@ -33,6 +33,9 @@ export class ThreeScene {
     
     // Advanced flight game telemetry
     this.gameActive = false;
+    this.gamePaused = false;
+    this.animationsPaused = false;
+    this.needsRender = false;
     this.gameScore = 0;
     this.gameEnergy = 100;
     this.keyboardInput = { up: false, down: false, left: false, right: false };
@@ -371,18 +374,64 @@ export class ThreeScene {
     this.camera.updateProjectionMatrix();
     
     this.renderer.setSize(this.width, this.height);
+    this.needsRender = true;
+  }
+
+  setAnimationsPaused(paused) {
+    this.animationsPaused = paused;
+    this.lastFrameTime = undefined;
+    if (paused && !this.gameActive) {
+      gsap.killTweensOf(this.camera.position);
+    } else if (!paused && !this.gameActive) {
+      this.updateScroll(this.scrollProgress);
+    }
+    this.needsRender = true;
+  }
+
+  setGamePaused(paused) {
+    if (!this.gameActive) return;
+    this.gamePaused = paused;
+    this.lastFrameTime = undefined;
+    this.keyboardInput = { up: false, down: false, left: false, right: false };
+    if (paused) {
+      gsap.killTweensOf(this.scene.background);
+      gsap.killTweensOf(this.scene.fog.color);
+    }
+    this.needsRender = true;
+  }
+
+  restartGame() {
+    if (!this.gameActive) return;
+    this.gamePaused = false;
+    this.gameScore = 0;
+    this.gameEnergy = 100;
+    this.lastFrameTime = undefined;
+    this.keyboardInput = { up: false, down: false, left: false, right: false };
+    this.planeGroup.position.set(0, 0, -160 * this.scrollProgress);
+    this.planeGroup.rotation.set(0, 0, 0);
+    this.camera.position.set(0, 1.8, this.planeGroup.position.z + 8);
+    this.camera.lookAt(0, -0.5, this.planeGroup.position.z - 8);
+    this.spawnGameRings();
+    this.trailPointsLeft?.forEach(point => point.copy(this.planeGroup.position));
+    this.trailPointsRight?.forEach(point => point.copy(this.planeGroup.position));
+    this.trailLeftGeometry?.setFromPoints(this.trailPointsLeft);
+    this.trailRightGeometry?.setFromPoints(this.trailPointsRight);
+    this.onGameUpdate?.({ score: 0, energy: 100 });
   }
   
   toggleGameMode(active) {
     this.gameActive = active;
+    this.gamePaused = false;
     this.lastFrameTime = undefined;
     gsap.killTweensOf(this.camera.position);
     gsap.killTweensOf(this.scene.background);
     gsap.killTweensOf(this.scene.fog.color);
     
     if (active) {
-      this.gameScore = 0;
-      this.gameEnergy = 100;
+      this.portfolioPose = {
+        plane: this.planeGroup.position.clone(), rotation: this.planeGroup.rotation.clone(),
+        camera: this.camera.position.clone(), quaternion: this.camera.quaternion.clone()
+      };
       
       // Stop body scrolling
       document.getElementById('scroll-main').style.overflowY = 'hidden';
@@ -403,7 +452,7 @@ export class ThreeScene {
       this.starPoints.material.opacity = 0.8;
       
       // Spawn golden target rings
-      this.spawnGameRings();
+      this.restartGame();
     } else {
       // Re-enable scroller (clear the inline lock, don't hard-code a value)
       document.getElementById('scroll-main').style.overflowY = '';
@@ -411,6 +460,15 @@ export class ThreeScene {
 
       // Remove game rings
       this.clearGameRings();
+
+      if (this.portfolioPose) {
+        this.planeGroup.position.copy(this.portfolioPose.plane);
+        this.planeGroup.rotation.copy(this.portfolioPose.rotation);
+        this.camera.position.copy(this.portfolioPose.camera);
+        this.camera.quaternion.copy(this.portfolioPose.quaternion);
+      }
+      this.applySky(this.scrollProgress);
+      this.needsRender = true;
 
       // Trigger camera reset to current scroll coordinate
       const scrollMain = document.getElementById('scroll-main');
@@ -573,6 +631,7 @@ export class ThreeScene {
     if (this.gameActive) return; // Ignore scroll tracking in manual game flight
     
     this.scrollProgress = scrollPercentage;
+    if (this.animationsPaused) return;
     this.applySky(scrollPercentage);
 
     // Flight camera navigation transitions:
@@ -608,6 +667,14 @@ export class ThreeScene {
     requestAnimationFrame(this.boundAnimate);
     if (document.hidden) {
       this.lastFrameTime = undefined;
+      return;
+    }
+    if ((this.gameActive && this.gamePaused) || (!this.gameActive && this.animationsPaused)) {
+      this.lastFrameTime = undefined;
+      if (this.needsRender) {
+        this.renderer.render(this.scene, this.camera);
+        this.needsRender = false;
+      }
       return;
     }
     // Normalize physics to 60 Hz and cap long frames after a suspended tab.

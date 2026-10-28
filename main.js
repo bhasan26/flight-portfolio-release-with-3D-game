@@ -1,4 +1,6 @@
-import { createDialog, readHighScore, saveHighScore, steeringDirection } from './ui.js';
+import { createDialog, readHighScore, saveHighScore } from './ui.js';
+import { createPortfolioRouter } from './navigation.js';
+import { readingMinutes, readingProgress, bindFlightInput } from './interactions.js';
 // Snapshot of real GitHub activity, refreshed by scripts/fetch-github.js at
 // build time and inlined into the bundle by Vite — no runtime network call.
 import githubStats from './github-stats.json';
@@ -13,6 +15,12 @@ let currentAirspeed = 320;
 let targetAirspeed = 320;
 let syncScrollState = () => {};
 let preloaderFinished = false;
+let animationsPaused = prefersReducedMotion;
+let portfolioRouter = null;
+const projectRoutes = new Map();
+const storyRoutes = new Map();
+const portfolioDialogs = [];
+const pageTitle = document.title;
 
 // Web Audio API Synthesizer state
 let audioCtx = null;
@@ -20,9 +28,6 @@ let audioMuted = true; // Muted by default to comply with browser user-interacti
 
 // Game score telemetry state
 let highscore = readHighScore(() => window.localStorage);
-
-// Manual flight mode needs a keyboard; touch-only devices have no way to steer.
-const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 // Project Telemetry Database (Spec sheets)
 const projectSpecs = {
@@ -154,10 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Run each system independently — one throwing (e.g. a hidden canvas on mobile)
   // must never prevent the rest of the page's interactivity from initializing.
   const systems = [
-    setupPreloader, setupClock, setupRadar, setupFidsAnimations,
+    setupMotionControls, setupPreloader, setupClock, setupRadar, setupFidsAnimations,
     setupProjectModals, setupStoryModals, setupContactForm,
     setupAudioSynth, setupHighScoreDisplay, setupStaticActions,
-    setupGitHubTelemetry, setupSolarReadout, setupScrollControls
+    setupGitHubTelemetry, setupSolarReadout, setupScrollControls, setupPortfolioRoutes
   ];
   systems.forEach(fn => {
     try {
@@ -207,6 +212,7 @@ async function initializeThreeScene(loadScene = () => import('./three-scene.js')
     threeSceneInstance = new ThreeScene('canvas-container', (message, pct) => {
       statusText.textContent = `${message} (${pct}%)`;
     });
+    threeSceneInstance.setAnimationsPaused?.(animationsPaused);
     syncScrollState();
     setupManualFlightTriggers();
   } catch (error) {
@@ -226,15 +232,105 @@ function setupStaticActions() {
   if (takeoffCta) {
     takeoffCta.addEventListener('click', () => {
       playSynthAudio('click');
-      document.getElementById('experience')?.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+      navigateToSection('experience');
     });
   }
+
+  document.querySelectorAll('[data-nav-section]').forEach(link => {
+    link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      navigateToSection(link.dataset.navSection);
+    });
+  });
+
+  document.querySelectorAll('.copy-link-btn').forEach(button => {
+    button.addEventListener('click', async () => {
+      const status = document.getElementById(button.getAttribute('aria-describedby'));
+      const route = { type: button.dataset.shareType, id: button.dataset.shareId };
+      const url = portfolioRouter?.urlFor(route);
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = 'Link copied. You can paste it into a message.';
+      } catch {
+        status.textContent = `Copy this link: ${url}`;
+      }
+    });
+  });
 
   // Link previews sit inside clickable cards — opening the external link must
   // not also pop the card's modal.
   document.querySelectorAll('.link-preview-box').forEach(link => {
     link.addEventListener('click', (e) => e.stopPropagation());
   });
+}
+
+function navigateToSection(id, { updateHistory = true, immediate = false } = {}) {
+  if (threeSceneInstance?.gameActive) return;
+  if (portfolioRouter && updateHistory) {
+    portfolioRouter.navigate({ type: 'section', id });
+    return;
+  }
+  const section = document.getElementById(id);
+  if (!section?.classList.contains('portfolio-section')) return;
+  section.scrollIntoView({ behavior: immediate || animationsPaused || prefersReducedMotion ? 'instant' : 'smooth' });
+  section.tabIndex = -1;
+  section.focus({ preventScroll: true });
+}
+
+function setupMotionControls() {
+  try {
+    const saved = window.localStorage.getItem('bilal_portfolio_motion_paused');
+    if (saved === 'true' || saved === 'false') animationsPaused = saved === 'true';
+  } catch { /* Motion preferences work without persistent storage. */ }
+  const apply = () => {
+    document.body.classList.toggle('animations-paused', animationsPaused);
+    document.querySelectorAll('.motion-toggle').forEach(button => {
+      button.textContent = animationsPaused ? 'RESUME ANIMATIONS' : 'PAUSE ANIMATIONS';
+      button.setAttribute('aria-pressed', String(animationsPaused));
+    });
+    if (animationsPaused) {
+      activeFlips.forEach((interval, element) => {
+        clearInterval(interval);
+        element.textContent = element.dataset.flipText || element.textContent;
+      });
+      activeFlips.clear();
+    }
+    threeSceneInstance?.setAnimationsPaused?.(animationsPaused);
+  };
+  document.querySelectorAll('.motion-toggle').forEach(button => {
+    button.addEventListener('click', () => {
+      animationsPaused = !animationsPaused;
+      apply();
+      try {
+        window.localStorage.setItem('bilal_portfolio_motion_paused', String(animationsPaused));
+      } catch { /* Keep the preference for this visit. */ }
+    });
+  });
+  apply();
+}
+
+function setupPortfolioRoutes() {
+  portfolioRouter = createPortfolioRouter(window, {
+    sections: [...document.querySelectorAll('.portfolio-section')].map(section => section.id),
+    projects: projectRoutes.keys(),
+    stories: storyRoutes.keys(),
+    onRoute(route) {
+      if (threeSceneInstance?.gameActive) document.getElementById('game-override-btn').click();
+      portfolioDialogs.forEach(dialog => dialog.close({ notify: false, restoreFocus: false }));
+      if (route.type === 'section') {
+        document.title = pageTitle;
+        navigateToSection(route.id, { updateHistory: false });
+      } else {
+        const isProject = route.type === 'project';
+        const card = document.querySelector(`[data-${route.type}="${route.id}"]`);
+        card?.scrollIntoView({ behavior: 'instant', block: 'center' });
+        (isProject ? projectRoutes : storyRoutes).get(route.id)?.();
+      }
+    }
+  });
+  portfolioRouter.start();
 }
 
 // 2c. Live GitHub telemetry — drives the ENGINE N1 instrument and the
@@ -427,13 +523,7 @@ function setupScrollControls() {
       playSynthAudio('click');
 
       const targetSectionId = btn.getAttribute('data-section');
-      const targetSection = document.getElementById(targetSectionId);
-
-      if (targetSection) {
-        targetSection.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
-        targetSection.tabIndex = -1;
-        targetSection.focus({ preventScroll: true });
-      }
+      navigateToSection(targetSectionId);
 
       if (hudNav && mobileNavToggle) {
         hudNav.classList.remove('mobile-open');
@@ -543,6 +633,7 @@ function setupScrollControls() {
   
   // Speedometer frame sweeps
   setInterval(() => {
+    if (threeSceneInstance?.gamePaused || (animationsPaused && !threeSceneInstance?.gameActive)) return;
     if (threeSceneInstance && threeSceneInstance.gameActive) {
       // Set to game throttle speed (480 KTS cruise)
       targetAirspeed = 485 + Math.sin(Date.now() * 0.005) * 5;
@@ -670,7 +761,7 @@ function setupRadar() {
       planeX = centerX + Math.sin(Date.now() * 0.003) * 15;
       planeY = centerY + Math.cos(Date.now() * 0.002) * 10;
       
-      if (coordinatesEl && Math.random() > 0.96) {
+      if (coordinatesEl && !animationsPaused && Math.random() > 0.96) {
         coordinatesEl.textContent = `FREE STEER ACTIVE`;
       }
     } else {
@@ -690,7 +781,7 @@ function setupRadar() {
       planeX = wpStart.x * canvas.width + (wpEnd.x - wpStart.x) * segPct;
       planeY = wpStart.y * canvas.height + (wpEnd.y - wpStart.y) * segPct;
       
-      if (coordinatesEl && Math.random() > 0.95) {
+      if (coordinatesEl && !animationsPaused && Math.random() > 0.95) {
         const lat = (47.6588 + (pct * 0.1) + (Math.random() - 0.5) * 0.005).toFixed(4);
         const lng = (117.4260 - (pct * 0.2) + (Math.random() - 0.5) * 0.005).toFixed(4);
         coordinatesEl.textContent = `${lat}° N, ${lng}° W`;
@@ -728,7 +819,7 @@ function setupRadar() {
     ctx.fill();
     ctx.restore();
     
-    if (!prefersReducedMotion) sweepAngle += 0.015;
+    if (!prefersReducedMotion && !animationsPaused) sweepAngle += 0.015;
 
     requestAnimationFrame(drawRadar);
   }
@@ -757,11 +848,11 @@ function setupFidsAnimations() {
   targets.forEach(t => observer.observe(t));
 }
 
-const activeFlips = new WeakMap();
+const activeFlips = new Map();
 
 function flipText(element, finalString) {
   if (!element) return;
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || animationsPaused) {
     element.textContent = finalString;
     return;
   }
@@ -800,6 +891,7 @@ function flipText(element, finalString) {
     if (fullyComplete || iteration > originalText.length * 3 + 10) {
       element.textContent = originalText;
       clearInterval(interval);
+      activeFlips.delete(element);
     }
     
     iteration++;
@@ -814,8 +906,12 @@ function setupProjectModals() {
   const modal = document.getElementById('project-modal');
   const closeModalBtn = document.getElementById('close-modal-btn');
   const dialog = createDialog(modal, closeModalBtn, [
-    document.getElementById('scroll-main'), document.getElementById('hud')
-  ]);
+    document.getElementById('scroll-main'), document.getElementById('hud'), document.getElementById('preferences-controls')
+  ], { onClose() {
+    document.title = pageTitle;
+    portfolioRouter?.navigate({ type: 'section', id: 'projects' }, { replace: true, applyRoute: false });
+  } });
+  portfolioDialogs.push(dialog);
   
   const modalBadge = document.getElementById('modal-project-badge');
   const modalTitle = document.getElementById('modal-project-title');
@@ -828,9 +924,9 @@ function setupProjectModals() {
     trigger.setAttribute('aria-haspopup', 'dialog');
     trigger.setAttribute('aria-controls', modal.id);
     trigger.setAttribute('aria-label', `Inspect ${card.querySelector('h3').textContent}`);
-    card.addEventListener('click', () => {
+    const projId = card.getAttribute('data-project');
+    const open = () => {
       playSynthAudio('click');
-      const projId = card.getAttribute('data-project');
       const specs = projectSpecs[projId];
       
       if (specs) {
@@ -852,9 +948,17 @@ function setupProjectModals() {
           buttonSpan.textContent = specs.buttonText || "GITHUB REPOSITORY";
         }
         
+        document.title = `${specs.title} | Bilal Hasan`;
+        document.getElementById('copy-project-link').dataset.shareId = projId;
+        document.getElementById('project-share-status').textContent = '';
         dialog.open(trigger);
         flipText(modalTitle, specs.title);
       }
+    };
+    projectRoutes.set(projId, open);
+    card.addEventListener('click', () => {
+      if (portfolioRouter) portfolioRouter.navigate({ type: 'project', id: projId });
+      else open();
     });
     
     card.addEventListener('mouseenter', () => {
@@ -870,8 +974,12 @@ function setupStoryModals() {
   const modal = document.getElementById('story-modal');
   const closeModalBtn = document.getElementById('close-story-modal-btn');
   const dialog = createDialog(modal, closeModalBtn, [
-    document.getElementById('scroll-main'), document.getElementById('hud')
-  ]);
+    document.getElementById('scroll-main'), document.getElementById('hud'), document.getElementById('preferences-controls')
+  ], { onClose() {
+    document.title = pageTitle;
+    portfolioRouter?.navigate({ type: 'section', id: 'stories' }, { replace: true, applyRoute: false });
+  } });
+  portfolioDialogs.push(dialog);
 
   const modalDate = document.getElementById('modal-story-date');
   const modalTitle = document.getElementById('modal-story-title');
@@ -879,21 +987,52 @@ function setupStoryModals() {
   const modalTags = document.getElementById('modal-story-tags');
   const modalCover = document.getElementById('modal-story-cover');
   const modalIcon = document.getElementById('modal-story-icon');
+  const readingCard = modal.querySelector('.story-modal-card');
+  const progress = document.getElementById('story-reading-progress');
+  const updateProgress = () => {
+    if (!modal.classList.contains('active')) return;
+    const value = readingProgress(readingCard.scrollTop, readingCard.scrollHeight, readingCard.clientHeight);
+    progress.setAttribute('aria-valuenow', String(value));
+    document.getElementById('story-progress-fill').style.width = `${value}%`;
+    document.getElementById('story-progress-label').textContent = `${value}% READ`;
+  };
+  readingCard.addEventListener('scroll', updateProgress, { passive: true });
+  modal.addEventListener('load', updateProgress, true);
+  window.addEventListener('resize', updateProgress);
+  if (window.ResizeObserver) {
+    const observer = new ResizeObserver(updateProgress);
+    observer.observe(readingCard);
+    observer.observe(modalBody);
+  }
 
   storyCards.forEach(card => {
     const trigger = card.querySelector('button');
     trigger.setAttribute('aria-haspopup', 'dialog');
     trigger.setAttribute('aria-controls', modal.id);
     trigger.setAttribute('aria-label', `Read ${card.querySelector('h3').textContent}`);
-    card.addEventListener('click', () => {
+    const storyId = card.getAttribute('data-story');
+    const text = document.createElement('div');
+    text.innerHTML = storySpecs[storyId]?.body || '';
+    const minutes = readingMinutes(text.textContent);
+    const date = card.querySelector('.story-date');
+    const metadata = document.createElement('div');
+    metadata.className = 'story-meta';
+    date.before(metadata);
+    metadata.appendChild(date);
+    const estimate = document.createElement('span');
+    estimate.className = 'story-reading-time mono-font';
+    estimate.textContent = `${minutes} MIN READ`;
+    estimate.title = 'Estimated at 200 words per minute';
+    metadata.appendChild(estimate);
+    const open = () => {
       playSynthAudio('click');
-      const storyId = card.getAttribute('data-story');
       const story = storySpecs[storyId];
 
       if (story) {
         modalDate.textContent = story.date;
         modalTitle.textContent = story.title.toUpperCase();
         modalBody.innerHTML = story.body;
+        document.getElementById('story-reading-time').textContent = `${minutes} MIN READ`;
 
         modalTags.innerHTML = "";
         story.tags.forEach(tag => {
@@ -911,9 +1050,19 @@ function setupStoryModals() {
           modalIcon.textContent = story.icon || '✈';
         }
 
+        document.title = `${story.title} | Bilal Hasan`;
+        document.getElementById('copy-story-link').dataset.shareId = storyId;
+        document.getElementById('story-share-status').textContent = '';
         dialog.open(trigger);
+        updateProgress();
+        requestAnimationFrame(updateProgress);
         flipText(modalTitle, story.title.toUpperCase());
       }
+    };
+    storyRoutes.set(storyId, open);
+    card.addEventListener('click', () => {
+      if (portfolioRouter) portfolioRouter.navigate({ type: 'story', id: storyId });
+      else open();
     });
 
     card.addEventListener('mouseenter', () => {
@@ -1101,166 +1250,146 @@ function playSynthAudio(type) {
 // 10. Manual steer flight game mode triggers & hooks
 function setupManualFlightTriggers() {
   const gameBtn = document.getElementById('game-override-btn');
+  const scene = threeSceneInstance;
+  if (!gameBtn || !scene) return;
   const gameHud = document.getElementById('game-hud');
+  const pauseBtn = document.getElementById('pause-game-btn');
+  const restartBtn = document.getElementById('restart-game-btn');
+  const status = document.getElementById('game-status');
+  const steerButtons = [...document.querySelectorAll('[data-steer]')];
   const autopilotLed = document.getElementById('autopilot-led');
   const autopilotText = document.getElementById('autopilot-status-text');
-  
-  if (!gameBtn || !threeSceneInstance) return;
+  const flightCanvas = document.getElementById('canvas-container');
+  let gameOverHandled = false;
+  const input = bindFlightInput(window, steerButtons, {
+    enabled: () => scene.gameActive && !scene.gamePaused && !gameOverHandled,
+    onChange: state => { scene.keyboardInput = state; }
+  });
 
-  // Manual flight is WASD/arrow-key steering only. On a touch-only device it
-  // would lock page scrolling for ~30s with no way to fly, so don't offer it.
-  if (isTouchOnly) {
-    gameBtn.style.display = 'none';
-    return;
+  function fitFlightView() {
+    if (scene.gameActive) {
+      const sidePanel = window.matchMedia('(max-height: 500px) and (min-width: 600px)').matches;
+      flightCanvas.style.width = sidePanel ? `${Math.max(1, gameHud.offsetLeft - 8)}px` : '';
+      flightCanvas.style.height = sidePanel ? '' : `${Math.max(1, gameHud.offsetTop - 8)}px`;
+    } else {
+      flightCanvas.style.width = '';
+      flightCanvas.style.height = '';
+    }
+    scene.onWindowResize?.();
+  }
+  window.addEventListener('resize', fitFlightView);
+  if (window.ResizeObserver) new ResizeObserver(fitFlightView).observe(gameHud);
+
+  function syncPauseControls() {
+    pauseBtn.textContent = scene.gamePaused ? 'RESUME' : 'PAUSE';
+    pauseBtn.setAttribute('aria-pressed', String(scene.gamePaused));
+    pauseBtn.disabled = gameOverHandled;
+    steerButtons.forEach(button => { button.disabled = scene.gamePaused; });
   }
 
+  function pauseFlight(paused, message) {
+    if (!scene.gameActive || (gameOverHandled && !paused)) return;
+    input.reset();
+    scene.setGamePaused(paused);
+    syncPauseControls();
+    status.textContent = message || (paused
+      ? 'Flight paused. Fuel and position are frozen.'
+      : 'Fly through rings to score and refuel.');
+  }
+
+  scene.onCollisionRing = () => playSynthAudio('chime');
+  scene.onGameUpdate = stats => {
+    document.getElementById('game-score').textContent = stats.score;
+    const energyEl = document.getElementById('game-energy');
+    energyEl.textContent = `${Math.round(stats.energy)}%`;
+    energyEl.className = stats.energy > 50 ? 'stat-value text-green glow-green'
+      : stats.energy > 20 ? 'stat-value text-amber glow-amber' : 'stat-value text-red animate-pulse';
+    if (stats.score > highscore) {
+      highscore = stats.score;
+      saveHighScore(() => window.localStorage, highscore);
+      document.getElementById('game-highscore').textContent = highscore;
+    }
+    if (stats.gameOver && !gameOverHandled) {
+      gameOverHandled = true;
+      pauseFlight(true, `Fuel exhausted. Score: ${stats.score}. Restart to fly again or exit.`);
+      document.getElementById('flight-feedback').textContent = `Flight complete. Score: ${stats.score} points.`;
+      restartBtn.focus({ preventScroll: true });
+    }
+  };
+
   gameBtn.disabled = false;
-
-  // Highscore display
   setupHighScoreDisplay();
-
-  document.getElementById('exit-game-btn').addEventListener('click', () => gameBtn.click());
-  let gameOverHandled = false;
-
   gameBtn.addEventListener('click', () => {
-    const active = !threeSceneInstance.gameActive;
+    const active = !scene.gameActive;
     gameOverHandled = false;
-
+    input.reset();
     playSynthAudio('click');
-    threeSceneInstance.toggleGameMode(active);
+    scene.toggleGameMode(active);
     document.body.classList.toggle('game-mode', active);
     document.getElementById('scroll-main').inert = active;
+    document.getElementById('preferences-controls').inert = active;
+    gameBtn.classList.toggle('active', active);
     gameBtn.setAttribute('aria-pressed', String(active));
+    gameHud.classList.toggle('active', active);
     gameHud.setAttribute('aria-hidden', String(!active));
     gameHud.inert = !active;
     document.querySelector('.hud-nav').classList.remove('mobile-open');
     document.getElementById('mobile-nav-toggle').setAttribute('aria-expanded', 'false');
     document.querySelector('.hud-nav').inert = window.matchMedia('(max-width: 1199px)').matches;
-    
+    document.querySelectorAll('.hud-nav .nav-btn').forEach(button => {
+      if (button !== gameBtn) button.disabled = active;
+      button.style.opacity = active && button !== gameBtn ? '0.3' : '';
+    });
+    autopilotLed.className = active ? 'indicator-led bg-amber' : 'indicator-led status-green blink';
+    autopilotText.textContent = active ? 'MAN OVERRIDE' : 'SYS ACTIVE';
+    autopilotText.className = active ? 'status-text glow-amber text-amber' : 'status-text glow-text text-green';
     if (active) {
-      // Game activated
-      gameBtn.classList.add('active');
-      gameHud.classList.add('active');
-      document.getElementById('exit-game-btn').focus({ preventScroll: true });
+      document.getElementById('flight-feedback').textContent = '';
       document.getElementById('game-score').textContent = '0';
       document.getElementById('game-energy').textContent = '100%';
       document.getElementById('game-energy').className = 'stat-value text-green glow-green';
-      
-      // Update Autopilot Instrument Led to warning amber override state
-      autopilotLed.className = "indicator-led bg-amber animate-pulse";
-      autopilotText.textContent = "MAN OVERRIDE";
-      autopilotText.className = "status-text glow-amber text-amber";
-      
-      // Disengage other nav scroll controls
-      document.querySelectorAll('.hud-nav .nav-btn').forEach(btn => {
-        if (btn.id !== 'game-override-btn') {
-          btn.disabled = true;
-          btn.style.opacity = '0.3';
-          btn.style.pointerEvents = 'none';
-        }
-      });
-      
-      // Wire keyboard listeners
-      window.addEventListener('keydown', handleGameKeyDown);
-      window.addEventListener('keyup', handleGameKeyUp);
-      
-      // Hook collides chime oscillator beep sound
-      threeSceneInstance.onCollisionRing = () => {
-        playSynthAudio('chime');
-      };
-      
-      // Hook game score updates to telemetry panel
-      threeSceneInstance.onGameUpdate = (stats) => {
-        const scoreEl = document.getElementById('game-score');
-        const energyEl = document.getElementById('game-energy');
-        
-        scoreEl.textContent = stats.score;
-        energyEl.textContent = `${Math.round(stats.energy)}%`;
-        
-        if (stats.energy > 50) {
-          energyEl.className = "stat-value text-green glow-green";
-        } else if (stats.energy > 20) {
-          energyEl.className = "stat-value text-amber glow-amber";
-        } else {
-          energyEl.className = "stat-value text-red animate-pulse";
-        }
-        
-        // High score updates
-        if (stats.score > highscore) {
-          highscore = stats.score;
-          saveHighScore(() => window.localStorage, highscore);
-          document.getElementById('game-highscore').textContent = highscore;
-        }
-        
-        // Fuel energy exhausted game over trigger. The scene keeps emitting
-        // gameOver every frame until it is torn down, so latch it.
-        if (stats.gameOver && !gameOverHandled) {
-          gameOverHandled = true;
-          playSynthAudio('click');
-          document.getElementById('flight-feedback').textContent = `Flight complete. Score: ${stats.score} points. Select Manual Flight to play again.`;
-
-          // Disable game
-          gameBtn.click();
-        }
-      };
-      
+      status.textContent = 'Fly through rings to score and refuel.';
+      pauseBtn.focus({ preventScroll: true });
     } else {
-      // Game deactivated
-      gameBtn.classList.remove('active');
-      gameHud.classList.remove('active');
-      
-      autopilotLed.className = "indicator-led status-green blink";
-      autopilotText.textContent = "SYS ACTIVE";
-      autopilotText.className = "status-text glow-text text-green";
-      
-      document.querySelectorAll('.hud-nav .nav-btn').forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = '';
-        btn.style.pointerEvents = '';
-      });
-      
-      // Remove listeners
-      window.removeEventListener('keydown', handleGameKeyDown);
-      window.removeEventListener('keyup', handleGameKeyUp);
-      
-      // Reset keyboard inputs
-      threeSceneInstance.keyboardInput = { up: false, down: false, left: false, right: false };
       const returnTarget = window.matchMedia('(max-width: 1199px)').matches
         ? document.getElementById('mobile-nav-toggle') : gameBtn;
       returnTarget.focus({ preventScroll: true });
     }
+    syncPauseControls();
+    fitFlightView();
+  });
+  document.getElementById('exit-game-btn').addEventListener('click', () => {
+    if (scene.gameActive) gameBtn.click();
+  });
+  pauseBtn.addEventListener('click', () => pauseFlight(!scene.gamePaused));
+  restartBtn.addEventListener('click', () => {
+    if (!scene.gameActive) return;
+    gameOverHandled = false;
+    input.reset();
+    scene.restartGame();
+    status.textContent = 'New flight started. Fly through rings to score and refuel.';
+    document.getElementById('flight-feedback').textContent = '';
+    syncPauseControls();
+  });
+  window.addEventListener('keydown', event => {
+    if (!scene.gameActive || event.repeat) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      gameBtn.click();
+    } else if (event.key.toLowerCase() === 'p') {
+      event.preventDefault();
+      pauseFlight(!scene.gamePaused);
+    }
+  });
+  const pauseAway = () => {
+    input.reset();
+    if (scene.gameActive && !scene.gamePaused) pauseFlight(true, 'Flight paused while you were away. Select Resume to continue.');
+  };
+  window.addEventListener('blur', pauseAway);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseAway();
   });
 }
-
-function handleGameKeyDown(event) {
-  if (!threeSceneInstance?.gameActive) return;
-  if (event.key === 'Escape') {
-    event.preventDefault();
-    document.getElementById('game-override-btn').click();
-    return;
-  }
-  const direction = steeringDirection(event.key);
-  if (direction) {
-    event.preventDefault();
-    threeSceneInstance.keyboardInput[direction] = true;
-  }
-}
-
-function handleGameKeyUp(event) {
-  if (!threeSceneInstance) return;
-  const direction = steeringDirection(event.key);
-  if (direction) {
-    event.preventDefault();
-    threeSceneInstance.keyboardInput[direction] = false;
-  }
-}
-
-// A released key in another tab must never leave steering stuck on return.
-window.addEventListener('blur', () => {
-  if (threeSceneInstance) {
-    threeSceneInstance.keyboardInput = { up: false, down: false, left: false, right: false };
-  }
-});
 
 function setupHighScoreDisplay() {
   const highscoreEl = document.getElementById('game-highscore');

@@ -534,6 +534,13 @@ body.loading-state {
   margin-bottom: 32px;
 }
 
+.departure-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
 .btn {
   text-decoration: none;
   display: inline-flex;
@@ -1075,6 +1082,30 @@ body.loading-state {
   padding-bottom: 40px;
 }
 
+.story-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.story-meta .story-date { margin-bottom: 0; }
+.story-reading-time { font-size: 10px; color: var(--text-secondary); }
+#story-reading-time { display: inline-block; margin: 0 0 12px 12px; }
+.story-modal-card .story-reading-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  background: rgba(6, 12, 26, 0.98);
+}
+.story-reading-controls { display: flex; align-items: center; gap: 12px; padding: 8px 12px; }
+#story-progress-label { flex: 1; font-size: 10px; white-space: nowrap; }
+.story-reading-controls .motion-toggle { min-height: 40px; padding: 8px 12px; font-size: 10px; }
+.story-reading-controls .modal-close-btn { position: static; flex-shrink: 0; }
+.story-reading-progress { height: 4px; background: var(--cyan-dim); }
+#story-progress-fill { width: 0; height: 100%; background: var(--cyan); }
+
 .story-modal-text {
   font-size: 14px;
   line-height: 1.8;
@@ -1612,6 +1643,22 @@ textarea.glass-input {
 
 .modal-links-section {
   margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.share-status {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.share-status:empty {
+  display: none;
 }
 
 .modal-links-section .btn {
@@ -1928,6 +1975,9 @@ textarea.glass-input {
   transform: translate(-50%, 20px);
   width: 500px;
   max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 110px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-amber);
@@ -1960,6 +2010,44 @@ textarea.glass-input {
 
 .game-instructions {
   font-size: 9px;
+}
+
+.game-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.game-actions .btn { min-height: 44px; padding: 10px 8px; justify-content: center; font-size: 11px; }
+.game-status { font-size: 11px; line-height: 1.5; min-height: 17px; }
+.touch-steering { display: none; }
+.steer-btn { width: 44px; height: 44px; padding: 0; border: 1px solid var(--border-amber); border-radius: 10px; background: rgba(255, 165, 0, 0.1); color: var(--amber); font: 24px var(--font-mono); cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.steer-btn.pressed { background: var(--amber); color: var(--bg-deep); border-color: var(--amber); }
+.steer-btn:disabled { opacity: 0.4; cursor: default; }
+.steer-up { grid-area: 1 / 2; }
+.steer-left { grid-area: 2 / 1; }
+.steer-right { grid-area: 2 / 3; }
+.steer-down { grid-area: 3 / 2; }
+.steer-center { grid-area: 2 / 2; display: grid; place-items: center; color: var(--text-muted); }
+.preferences-controls { position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); left: max(16px, env(safe-area-inset-left)); z-index: 30; }
+.preferences-controls .btn { min-height: 44px; padding: 10px 14px; font-size: 11px; background: rgba(6, 12, 26, 0.96); }
+.game-mode .preferences-controls { display: none; }
+body.game-mode { overscroll-behavior: none; }
+body.animations-paused *, body.animations-paused *::before, body.animations-paused *::after {
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+@media (any-pointer: coarse), (max-width: 767px) {
+  .game-hud-overlay { display: grid; grid-template-columns: minmax(0, 1fr) 140px; grid-template-areas: "header header" "stats pad" "status pad" "actions actions"; gap: 8px 12px; padding: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+  .game-hud-overlay .game-hud-header { grid-area: header; gap: 4px; }
+  .game-actions { grid-area: actions; }
+  .game-hud-overlay .game-stats-grid { grid-area: stats; gap: 4px; align-self: start; }
+  .game-status { grid-area: status; align-self: start; }
+  .touch-steering { grid-area: pad; display: grid; grid-template: repeat(3, 44px) / repeat(3, 44px); gap: 4px; touch-action: none; }
+  .game-stats-grid .hud-label { font-size: 8px; letter-spacing: 0; }
+  .game-stats-grid .stat-value { font-size: 18px; }
+}
+
+@media (max-height: 500px) and (min-width: 600px) {
+  .game-hud-overlay { width: min(440px, 48vw); left: auto; right: 12px; transform: translateY(20px); max-height: calc(100dvh - 100px); overflow-y: auto; }
+  .game-hud-overlay.active { transform: translateY(0); }
 }
 
 .game-stats-grid {
@@ -2092,6 +2180,7 @@ textarea.glass-input {
   #preloader, 
   .skip-link,
   .flight-feedback,
+  .preferences-controls,
   .scroll-container, 
   .modal-overlay {
     display: none !important;
