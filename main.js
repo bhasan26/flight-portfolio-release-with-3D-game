@@ -97,7 +97,7 @@ const storySpecs = {
   "cal-hacks-13": {
     date: "OCT 2026",
     title: "Cal Hacks 13.0: Building Coverage Guard",
-    cover: "/stories/cal-hacks-13-team.jpg",
+    cover: "/stories/cal-hacks-13-sign.jpg",
     body: `<p>At Cal Hacks 13.0, I built <strong>Coverage Guard</strong>: a way to check an insurance card and prescription against insurer policy sources, with the evidence alongside the result.</p>
       <h4 class="text-cyan">From documents to a policy check</h4>
       <p>The app extracts information from uploaded insurance cards and prescriptions using local PDF processing and OCR. It then compares the prescribed medication or procedure with retrieved insurer policy criteria. Reports include source links and effective dates when available, and a request history keeps previous checks in one place.</p>
