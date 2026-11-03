@@ -2539,3 +2539,21 @@ body.animations-paused *, body.animations-paused *::before, body.animations-paus
   .hud-nav .nav-num { display: none; }
   .hud-nav .nav-btn { flex-shrink: 0; }
 }
+
+.cricket-innings-header { margin: 48px 0 24px; }
+.cricket-innings-header h3 { font-size: clamp(24px, 3vw, 32px); line-height: 1.3; margin-top: 12px; }
+.cricket-innings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.cricket-innings { padding: 28px; display: flex; flex-direction: column; }
+.cricket-innings h4 { display: flex; gap: 18px; align-items: center; margin: 22px 0 12px; }
+.cricket-innings h4 strong { font-family: var(--font-mono); font-size: 56px; line-height: 1; color: var(--cyan); }
+.cricket-innings h4 span { font-family: var(--font-mono); font-size: 10px; line-height: 1.8; letter-spacing: .08em; }
+.cricket-innings p { font-size: 13px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 18px; }
+.cricket-innings .cricket-innings-detail { color: var(--text-primary); font-weight: 600; }
+.cricket-innings .cricket-source { margin-top: auto; padding-top: 8px; }
+.cricket-ranking { margin-top: 24px; padding: 20px 24px; border-left: 2px solid var(--cyan); background: rgba(0, 255, 255, .03); font-size: 11px; line-height: 1.9; color: var(--text-secondary); }
+.cricket-ranking strong, .cricket-ranking a { color: var(--cyan); }
+.cricket-ranking span { display: block; margin-top: 8px; font-size: 10px; }
+@media (max-width: 767px) {
+  .cricket-innings-grid { grid-template-columns: 1fr; }
+  .cricket-innings { padding: 24px; }
+}
