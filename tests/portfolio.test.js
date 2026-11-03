@@ -101,7 +101,10 @@ test('Escape closes an open dialog even if browser focus moves to the document',
 
 test('direct project and story links populate the right dialog and close without losing context', t => {
   for (const [hash, modalId, expectedTitle, section] of [
-    ['#project/braillience', 'project-modal', 'Braillience AI | Bilal Hasan', 'projects'],
+    ['#project/coverage-guard', 'project-modal', 'Coverage Guard — Cal Hacks 13.0 | Bilal Hasan', 'projects'],
+    ['#story/cal-hacks-13', 'story-modal', 'Cal Hacks 13.0: Building Coverage Guard | Bilal Hasan', 'stories'],
+    ['#story/cal-hacks-12', 'story-modal', 'Cal Hacks 12.0: Voice-First Learning with Braillience | Bilal Hasan', 'stories'],
+    ['#project/braillience', 'project-modal', 'Braillience — Cal Hacks 12.0 | Bilal Hasan', 'projects'],
     ['#story/google-io-2026', 'story-modal', 'On the Ground at Google I/O 2026 | Bilal Hasan', 'stories']
   ]) {
     const window = app(t, { hash });

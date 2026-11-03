@@ -2492,3 +2492,13 @@ body.animations-paused *, body.animations-paused *::before, body.animations-paus
     scroll-behavior: auto !important;
   }
 }
+
+/* Hackathon photos retain their full framing inside the flight journal. */
+.cal-hacks-cover { height: auto; aspect-ratio: 3 / 2; object-fit: contain; background: rgba(0, 0, 0, 0.25); }
+.story-modal-card:has(.hackathon-gallery) .story-modal-cover { height: auto; aspect-ratio: 3 / 2; }
+.hackathon-gallery { display: grid; gap: 16px; margin: 28px 0; }
+.hackathon-gallery img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--border-glass); }
+.hackathon-gallery-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 600px) {
+  .hackathon-gallery-pair { grid-template-columns: 1fr; }
+}

@@ -34,11 +34,18 @@ let highscore = readHighScore(() => window.localStorage);
 
 // Project Telemetry Database (Spec sheets)
 const projectSpecs = {
+  "coverage-guard": {
+    badge: "SPEC-07",
+    title: "Coverage Guard — Cal Hacks 13.0",
+    details: "Built at Cal Hacks 13.0 in 2026, Coverage Guard checks insurance cards and prescriptions against retrieved insurer policy sources. Local OCR and PDF processing extract document information, while saved reports surface policy criteria, source links, and review status. Results distinguish a policy match from missing information or a policy mismatch; they are not live insurer approval.",
+    stack: ["React", "Tailwind CSS", "FastAPI", "RapidOCR", "SQLite"],
+    github: "https://github.com/bhasan26/clahacks-13.0"
+  },
   braillience: {
     badge: "SPEC-01",
-    title: "Braillience AI",
-    details: "An engineered stateful AI voice assistant designed to assist visually impaired students. Utilizes a high-fidelity NLP pipeline to ingest long-form transcripts and compile concise summaries. Improved campus accessibility metrics and increased resource utilization by 60% among targeted student demographics.",
-    stack: ["OpenAI API", "Python", "NLP Pipeline", "Speech-to-Text", "Vercel"],
+    title: "Braillience — Cal Hacks 12.0",
+    details: "Built at Cal Hacks 12.0 in 2025, Braillience is an accessible learning platform for blind and visually impaired students. Teachers upload PDFs to generate AI flashcards, and students study with voice commands and an in-browser AI tutor. The project combines document processing, stateful learning assistance, and speech recognition and synthesis.",
+    stack: ["React", "Node.js", "Express", "Letta", "Gemini", "Web Speech API"],
     github: "https://github.com/bhasan26/Braillience"
   },
   cricketcoach: {
@@ -87,6 +94,37 @@ const projectSpecs = {
 // data-story="<slug>" pointing at this key. Drop a cover image in public/stories/
 // and reference it via the `cover` field, or omit it to use the placeholder icon.
 const storySpecs = {
+  "cal-hacks-13": {
+    date: "OCT 2026",
+    title: "Cal Hacks 13.0: Building Coverage Guard",
+    cover: "/stories/cal-hacks-13-team.jpg",
+    body: `<p>At Cal Hacks 13.0, I built <strong>Coverage Guard</strong>: a way to check an insurance card and prescription against insurer policy sources, with the evidence alongside the result.</p>
+      <h4 class="text-cyan">From documents to a policy check</h4>
+      <p>The app extracts information from uploaded insurance cards and prescriptions using local PDF processing and OCR. It then compares the prescribed medication or procedure with retrieved insurer policy criteria. Reports include source links and effective dates when available, and a request history keeps previous checks in one place.</p>
+      <p>A policy match is a test result, not live insurer approval. When information or policy evidence is missing, the report calls for review instead of inventing an answer.</p>
+      <div class="hackathon-gallery">
+        <img loading="lazy" decoding="async" src="/stories/cal-hacks-13-team.jpg" alt="Our group at a table during Cal Hacks 13.0" />
+        <div class="hackathon-gallery-pair">
+          <img loading="lazy" decoding="async" src="/stories/cal-hacks-13-coffee.jpg" alt="A coffee break on the hackathon floor" />
+          <img loading="lazy" decoding="async" src="/stories/cal-hacks-13-break.jpg" alt="Another moment from a coffee break at the hackathon" />
+        </div>
+      </div>
+      <p>Built with React, Tailwind CSS, FastAPI, RapidOCR, and SQLite.</p>
+      <p><a class="text-cyan" href="https://github.com/bhasan26/clahacks-13.0">Explore Coverage Guard on GitHub ➔</a></p>`,
+    tags: ["Cal Hacks 13.0", "Coverage Guard", "Full Stack"]
+  },
+  "cal-hacks-12": {
+    date: "2025",
+    title: "Cal Hacks 12.0: Voice-First Learning with Braillience",
+    icon: "◈",
+    body: `<p>At Cal Hacks 12.0 in 2025, I built <strong>Braillience</strong> with my team: an accessible learning platform for blind and visually impaired students.</p>
+      <h4 class="text-cyan">Study through speech</h4>
+      <p>Teachers upload PDFs, and AI turns the material into flashcards. Students can navigate study sets with voice commands and talk with an AI tutor directly in the browser, using speech recognition and text-to-speech to make studying hands-free.</p>
+      <p>The project brings together a React frontend, a Node.js and Express backend, Letta for stateful learning assistance, Gemini, and the Web Speech API. Accessibility shaped the core interaction: learning through speech, with screen reader support.</p>
+      <p><a class="text-cyan" href="https://github.com/bhasan26/Braillience">Explore Braillience on GitHub ➔</a></p>
+      <p><a class="text-cyan" href="https://youtu.be/1WcWxWYDlo8">Watch the project demo ➔</a></p>`,
+    tags: ["Cal Hacks 12.0", "Accessibility", "Voice AI"]
+  },
   "gdg-year-one": {
     date: "APR 2026",
     title: "One Year Running GDG on Campus",
