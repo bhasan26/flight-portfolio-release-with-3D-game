@@ -40,7 +40,7 @@
       "has": [
         {
           "type": "host",
-          "value": "bilal-swe.vercel.app"
+          "value": "bilal-swe\\.vercel\\.app"
         }
       ],
       "destination": "https://www.bhasan.online/:path*",

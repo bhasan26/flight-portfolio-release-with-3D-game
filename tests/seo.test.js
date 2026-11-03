@@ -40,7 +40,7 @@ test('sitemap and all pages agree on unique custom-domain canonicals and metadat
 test('canonical redirect targets only the legacy production hostname', () => {
   const { redirects } = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
   assert.deepEqual(redirects, [{
-    source: '/:path*', has: [{ type: 'host', value: 'bilal-swe.vercel.app' }],
+    source: '/:path*', has: [{ type: 'host', value: 'bilal-swe\\.vercel\\.app' }],
     destination: `${origin}/:path*`, permanent: true
   }]);
 });
