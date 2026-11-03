@@ -2,6 +2,11 @@ import { defineConfig } from 'vite';
 import { contentSecurityPolicy, securityHeaders } from './security-policy.js';
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: ['index.html', 'projects/coverage-guard/index.html', 'projects/braillience/index.html', 'projects/cricket-shadow-coach/index.html']
+    }
+  },
   plugins: [{
     name: 'local-development-csp',
     apply: 'serve',

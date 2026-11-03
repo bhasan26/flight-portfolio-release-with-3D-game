@@ -302,7 +302,7 @@ function setupStaticActions() {
 
   // Link previews sit inside clickable cards — opening the external link must
   // not also pop the card's modal.
-  document.querySelectorAll('.link-preview-box').forEach(link => {
+  document.querySelectorAll('.link-preview-box, .project-case-link').forEach(link => {
     link.addEventListener('click', (e) => e.stopPropagation());
   });
 }

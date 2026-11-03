@@ -1,5 +1,7 @@
 # Bilal Hasan's flight portfolio
 
+Live at [www.bhasan.online](https://www.bhasan.online/).
+
 An aviation-themed portfolio built with Vite, Three.js, and GSAP. It includes experience, projects, stories, skills, a contact form, and a flight game with keyboard and touch controls.
 
 ## Local development
@@ -64,3 +66,11 @@ Share a section with `#projects`, an individual project with `#project/braillien
 See [SECURITY.md](SECURITY.md) for the review scope, protections, verification, and provider settings still requiring confirmation. Keep environment variables, private keys, and npm credentials out of Git and out of `public/`. The browser only receives the public GitHub activity snapshot; build tokens stay in the build environment.
 
 The production policy disallows inline script/style attributes and restricts form submissions to Formspree. Runtime visual updates use individual CSS properties. Local development alone permits Vite's injected styles and loopback HMR socket; the production preview applies the strict policy without forcing HTTPS on localhost.
+
+## Search metadata and project pages
+
+The preferred production origin is `https://www.bhasan.online/`. The canonical, social metadata, structured data, `public/robots.txt`, and `public/sitemap.xml` use that origin. A host-scoped Vercel redirect consolidates `bilal-swe.vercel.app` onto the custom domain while preserving paths. Preview deployment hostnames remain available.
+
+Static project pages live under `projects/` and are included as Vite HTML entry points. Each has a unique title, description, canonical, static project details, and links to the source repository and related projects. Add new pages to Vite's input list and the sitemap. Update sitemap `lastmod` only when page content materially changes.
+
+`tests/seo.test.js` checks metadata and sitemap consistency plus the redirect scope. Submit `https://www.bhasan.online/sitemap.xml` in Google Search Console after publication; Google controls crawling and ranking.

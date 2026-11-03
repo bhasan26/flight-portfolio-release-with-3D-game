@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; style-src-elem 'self' https://fonts.googleapis.com; style-src-attr 'none'; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://formspree.io/f/xovqdbyq; form-action https://formspree.io; object-src 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; base-uri 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Cricket Shadow Coach | Bilal Hasan</title>
+  <meta name="description" content="Cricket Shadow Coach by Bilal Hasan combines React, MediaPipe Pose, and FastAPI for webcam-based batting practice and indicative bowling-action screening.">
+  <meta name="author" content="Bilal Hasan">
+  <link rel="canonical" href="https://www.bhasan.online/projects/cricket-shadow-coach/">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/project-page.css">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bilal Hasan">
+  <meta property="og:title" content="Cricket Shadow Coach | Bilal Hasan">
+  <meta property="og:description" content="Cricket Shadow Coach by Bilal Hasan combines React, MediaPipe Pose, and FastAPI for webcam-based batting practice and indicative bowling-action screening.">
+  <meta property="og:url" content="https://www.bhasan.online/projects/cricket-shadow-coach/">
+  <meta property="og:image" content="https://www.bhasan.online/portfolio-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Cricket Shadow Coach | Bilal Hasan", "description": "Cricket Shadow Coach by Bilal Hasan combines React, MediaPipe Pose, and FastAPI for webcam-based batting practice and indicative bowling-action screening.", "url": "https://www.bhasan.online/projects/cricket-shadow-coach/", "isPartOf": {"@type": "WebSite", "name": "Bilal Hasan", "url": "https://www.bhasan.online/"}, "mainEntity": {"@type": "CreativeWork", "name": "Cricket Shadow Coach", "url": "https://www.bhasan.online/projects/cricket-shadow-coach/", "creator": {"@type": "Person", "name": "Bilal Hasan", "url": "https://www.bhasan.online/"}, "sameAs": "https://github.com/bhasan26/cricket-shadow-coach"}}</script>
+</head>
+<body>
+  <a class="skip" href="#project-content">Skip to project</a>
+  <header><a class="brand" href="/">✈ &nbsp; BILAL HASAN</a><a href="/#projects">RETURN TO THE HANGAR ↗</a></header>
+  <main id="project-content">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Portfolio</a><span>/</span><span>Cricket Shadow Coach</span></nav>
+    <p class="eyebrow">SPORTS TECHNOLOGY · COMPUTER VISION</p>
+    <h1>Cricket Shadow Coach</h1>
+    <p class="summary">Browser-based cricket practice with pose tracking, batting-drill comparisons, and guided feedback.</p>
+    <p class="byline">A project by <a href="/">Bilal Hasan</a> · Computer Science at Whitworth University · Spokane, Washington</p>
+    <ul class="stack" aria-label="Technology stack"><li>React</li><li>Vite</li><li>MediaPipe Pose</li><li>FastAPI</li><li>NumPy</li><li>Dynamic Time Warping</li></ul>
+    <div class="actions"><a class="button" href="https://github.com/bhasan26/cricket-shadow-coach" target="_blank" rel="noopener noreferrer">VIEW SOURCE ON GITHUB ↗</a><a class="button secondary" href="https://www.cricketcoach.online" target="_blank" rel="noopener noreferrer">VIEW PROJECT DEMO ↗</a></div>
+    <article class="details"><section><h2>The idea</h2><p>My cricket interests extend from playing with the Spokane Spartans to building tools for practice. Cricket Shadow Coach uses a webcam to help players inspect their movement and compare batting drills with reference motions.</p></section><section><h2>What the app does</h2><p>The app supports five batting drills: cover drive, straight drive, pull shot, defensive block, and flick shot. A guided cover-drive practice compares two sets of five attempts, with a coaching cue between sets and a progress dashboard for completed sessions.</p></section><section><h2>How it works</h2><p>MediaPipe Pose runs in the browser and extracts body landmarks. A FastAPI backend processes joint angles, smooths and resamples the motion, and uses Dynamic Time Warping to compare a stroke with a reference. The interface displays scores, tracking quality, and coaching feedback.</p></section><section><h2>Privacy and continuity</h2><p>Video stays on the device; analysis uses landmark coordinates. Practice history stays in the same browser and completed summaries can be downloaded. Left- and right-handed batting and separate bowling-arm selection support different setups.</p></section><section><h2>Limits that matter</h2><p>Movement scores are practice comparisons, not measurements of a player’s overall ability. The bowling-action screen is indicative: a single camera cannot provide an official legality decision. Synthetic evaluation checks do not establish accuracy on independent real players.</p></section></article>
+    <nav class="related" aria-label="More projects"><h2>More from the hangar</h2><a href="/projects/coverage-guard/">Coverage Guard ↗</a><a href="/projects/braillience/">Braillience ↗</a></nav>
+  </main>
+  <footer><a href="/">Bilal Hasan · Software engineering portfolio</a><a href="/#arrival">GET IN TOUCH ↗</a></footer>
+</body>
+</html>

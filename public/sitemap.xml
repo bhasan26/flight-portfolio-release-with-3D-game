@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://bilal-swe.vercel.app/</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <url><loc>https://www.bhasan.online/</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://www.bhasan.online/projects/coverage-guard/</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://www.bhasan.online/projects/braillience/</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://www.bhasan.online/projects/cricket-shadow-coach/</loc><lastmod>2026-11-02</lastmod></url>
 </urlset>

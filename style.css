@@ -2557,3 +2557,5 @@ body.animations-paused *, body.animations-paused *::before, body.animations-paus
   .cricket-innings-grid { grid-template-columns: 1fr; }
   .cricket-innings { padding: 24px; }
 }
+
+.project-case-link { display: inline-block; position: relative; z-index: 1; margin-top: 16px; font-size: 10px; letter-spacing: .05em; line-height: 1.8; }

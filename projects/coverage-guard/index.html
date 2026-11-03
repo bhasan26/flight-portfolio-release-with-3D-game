@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; style-src-elem 'self' https://fonts.googleapis.com; style-src-attr 'none'; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://formspree.io/f/xovqdbyq; form-action https://formspree.io; object-src 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; base-uri 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Coverage Guard | Bilal Hasan</title>
+  <meta name="description" content="Coverage Guard by Bilal Hasan: a Cal Hacks 13.0 project using React, FastAPI, and local OCR to check insurance documents against policy sources.">
+  <meta name="author" content="Bilal Hasan">
+  <link rel="canonical" href="https://www.bhasan.online/projects/coverage-guard/">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/project-page.css">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bilal Hasan">
+  <meta property="og:title" content="Coverage Guard | Bilal Hasan">
+  <meta property="og:description" content="Coverage Guard by Bilal Hasan: a Cal Hacks 13.0 project using React, FastAPI, and local OCR to check insurance documents against policy sources.">
+  <meta property="og:url" content="https://www.bhasan.online/projects/coverage-guard/">
+  <meta property="og:image" content="https://www.bhasan.online/portfolio-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Coverage Guard | Bilal Hasan", "description": "Coverage Guard by Bilal Hasan: a Cal Hacks 13.0 project using React, FastAPI, and local OCR to check insurance documents against policy sources.", "url": "https://www.bhasan.online/projects/coverage-guard/", "isPartOf": {"@type": "WebSite", "name": "Bilal Hasan", "url": "https://www.bhasan.online/"}, "mainEntity": {"@type": "CreativeWork", "name": "Coverage Guard", "url": "https://www.bhasan.online/projects/coverage-guard/", "creator": {"@type": "Person", "name": "Bilal Hasan", "url": "https://www.bhasan.online/"}, "sameAs": "https://github.com/bhasan26/clahacks-13.0"}}</script>
+</head>
+<body>
+  <a class="skip" href="#project-content">Skip to project</a>
+  <header><a class="brand" href="/">✈ &nbsp; BILAL HASAN</a><a href="/#projects">RETURN TO THE HANGAR ↗</a></header>
+  <main id="project-content">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Portfolio</a><span>/</span><span>Coverage Guard</span></nav>
+    <p class="eyebrow">CAL HACKS 13.0 · 2026</p>
+    <h1>Coverage Guard</h1>
+    <p class="summary">An insurance document checker that compares uploaded cards and prescriptions with insurer policy evidence.</p>
+    <p class="byline">A project by <a href="/">Bilal Hasan</a> · Computer Science at Whitworth University · Spokane, Washington</p>
+    <ul class="stack" aria-label="Technology stack"><li>React</li><li>Tailwind CSS</li><li>FastAPI</li><li>RapidOCR</li><li>SQLite</li></ul>
+    <div class="actions"><a class="button" href="https://github.com/bhasan26/clahacks-13.0" target="_blank" rel="noopener noreferrer">VIEW SOURCE ON GITHUB ↗</a></div>
+    <article class="details"><section><h2>The problem</h2><p>Understanding an insurance policy often means comparing information scattered across a card, a prescription, and policy documents. A useful result needs to show the evidence behind it and identify when more review is needed.</p></section><section><h2>What I built</h2><p>I built Coverage Guard at Cal Hacks 13.0. Users upload an insurance card and a prescription, run a check, and review extracted information alongside policy sources. A request history stores previous checks and reports.</p></section><section><h2>How it works</h2><p>The FastAPI backend reads PDFs and uses RapidOCR for image and scanned-document extraction. Insurer and treatment information guide a bounded search for official policy documents. The React interface presents policy criteria, source links, and effective dates when available. SQLite stores the request history.</p></section><section><h2>Design decisions</h2><p>Document extraction runs locally. Public searches use insurer and treatment names rather than patient or member identifiers. Incomplete information and inaccessible evidence produce a review status instead of an invented answer.</p></section><section><h2>What the result means</h2><p>A matching policy check is a prototype result, not live insurer approval. The project does not connect directly to an insurer database or write to one. The repository documents supported inputs, validation, and the remaining integration limits.</p></section></article>
+    <nav class="related" aria-label="More projects"><h2>More from the hangar</h2><a href="/projects/braillience/">Braillience ↗</a><a href="/projects/cricket-shadow-coach/">Cricket Shadow Coach ↗</a></nav>
+  </main>
+  <footer><a href="/">Bilal Hasan · Software engineering portfolio</a><a href="/#arrival">GET IN TOUCH ↗</a></footer>
+</body>
+</html>
