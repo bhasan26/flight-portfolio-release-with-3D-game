@@ -171,6 +171,22 @@ test('compact navigation is inert when closed, selects every section, and closes
   }
 });
 
+test('cricket deep links and restored scroll activate the cricket navigation and HUD', t => {
+  const window = app(t, { hash: '#cricket' });
+  const document = window.document;
+  document.querySelectorAll('.portfolio-section').forEach(section => {
+    section.getBoundingClientRect = () => section.id === 'cricket'
+      ? { top: 100, bottom: 800 } : { top: 1000, bottom: 2000 };
+  });
+  window.app.setupScrollControls();
+  window.app.setupProjectModals();
+  window.app.setupStoryModals();
+  window.app.setupPortfolioRoutes();
+  assert.equal(window.scrolledTo, 'cricket');
+  assert.equal(document.querySelector('[aria-current="location"]').dataset.section, 'cricket');
+  assert.equal(document.getElementById('flight-status-indicator').textContent, 'MATCHDAY IN SPOKANE');
+});
+
 test('restored scroll positions and page restoration synchronize the HUD immediately', t => {
   const window = app(t);
   const document = window.document;
@@ -492,7 +508,10 @@ test('all local links, images, section targets, and story assets resolve', () =>
     for (const element of dom.window.document.querySelectorAll('[href], [src], [data-section]')) {
       const rawPath = element.dataset.section ? `#${element.dataset.section}` : element.getAttribute('href') || element.getAttribute('src');
       const path = rawPath.split('?')[0];
-      if (path.startsWith('#') && path.length > 1) assert.ok(ids.includes(path.slice(1)), path);
+      if (path.startsWith('#project/')) {
+        const projectId = path.slice('#project/'.length);
+        assert.ok([...dom.window.document.querySelectorAll('[data-project]')].some(card => card.dataset.project === projectId), path);
+      } else if (path.startsWith('#') && path.length > 1) assert.ok(ids.includes(path.slice(1)), path);
       if (path.startsWith('/') && !path.startsWith('//')) {
         assert.ok(existsSync(new URL(`..${path}`, import.meta.url)) || existsSync(new URL(`../public${path}`, import.meta.url)), path);
       }

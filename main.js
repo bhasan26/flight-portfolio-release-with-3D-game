@@ -607,7 +607,7 @@ function setupScrollControls() {
     targetAirspeed = 320 + Math.min(scrollDelta * 6, 260);
     
     // 3. Highlight current active section HUD button
-    const sections = ['departure', 'experience', 'projects', 'stories', 'controls', 'arrival'];
+    const sections = ['departure', 'experience', 'projects', 'stories', 'cricket', 'controls', 'arrival'];
     let currentActive = 'departure';
     
     const viewportHeight = window.innerHeight;
@@ -658,6 +658,9 @@ function setupScrollControls() {
       } else if (activeSection === 'stories') {
         statusIndicator.textContent = "FLIGHT JOURNAL OPEN";
         statusIndicator.className = "brand-title fids-font text-cyan glow-text";
+      } else if (activeSection === 'cricket') {
+        statusIndicator.textContent = "MATCHDAY IN SPOKANE";
+        statusIndicator.className = "brand-title fids-font text-green glow-green";
       } else if (activeSection === 'controls') {
         statusIndicator.textContent = "AUTOPILOT COCKPIT";
         statusIndicator.className = "brand-title fids-font text-cyan glow-text";

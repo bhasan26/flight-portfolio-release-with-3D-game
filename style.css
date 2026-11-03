@@ -2502,3 +2502,40 @@ body.animations-paused *, body.animations-paused *::before, body.animations-paus
 @media (max-width: 600px) {
   .hackathon-gallery-pair { grid-template-columns: 1fr; }
 }
+
+/* Beyond the cockpit: cricket profile and sourced season highlight. */
+.cricket-feature { overflow: hidden; }
+.cricket-intro { padding: clamp(24px, 4vw, 48px); }
+.cricket-eyebrow { display: block; font-size: 10px; letter-spacing: .12em; line-height: 1.8; }
+.cricket-intro h3 { font-size: clamp(28px, 4vw, 46px); line-height: 1.15; margin: 16px 0 20px; }
+.cricket-intro p, .cricket-season p { color: var(--text-secondary); font-size: 14px; line-height: 1.8; max-width: 64ch; }
+.cricket-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 28px 0; padding: 22px 0; border-block: 1px solid var(--border-glass); }
+.cricket-facts span { display: block; font-size: 9px; color: var(--text-secondary); letter-spacing: .08em; line-height: 1.5; }
+.cricket-facts strong { display: block; font-size: 22px; margin-top: 8px; }
+.cricket-source { display: inline-block; font-size: 10px; line-height: 1.8; letter-spacing: .04em; text-decoration: none; }
+.cricket-source:hover { text-decoration: underline; }
+.cricket-hero { display: block; width: 100%; height: auto; border-top: 1px solid var(--border-glass); }
+.cricket-season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; align-items: start; }
+.cricket-season { padding: clamp(24px, 3vw, 32px); }
+.cricket-season h3 { font-size: 24px; line-height: 1.3; margin-top: 14px; }
+.cricket-score { display: flex; gap: 18px; align-items: center; margin: 24px 0; }
+.cricket-score strong { font-family: var(--font-mono, monospace); font-size: 68px; line-height: 1; color: var(--cyan); }
+.cricket-score span { font-size: 10px; line-height: 1.7; letter-spacing: .1em; }
+.cricket-season-context { margin: 16px 0; }
+.cricket-season .cricket-attribution { font-size: 11px; margin-top: 16px; }
+.cricket-attribution a { color: var(--cyan); }
+.cricket-project-link { margin-top: 24px; font-size: 10px; line-height: 1.7; white-space: normal; }
+.cricket-team-photo { margin: 0; overflow: hidden; }
+.cricket-team-photo img { display: block; width: 100%; height: auto; }
+.cricket-team-photo figcaption { padding: 18px 20px; color: var(--text-secondary); font-size: 10px; letter-spacing: .08em; }
+@media (max-width: 767px) {
+  .cricket-season-grid { grid-template-columns: 1fr; }
+  .cricket-facts { gap: 12px; }
+  .cricket-facts strong { font-size: 20px; }
+}
+.cricket-feature { display: flex; flex-direction: column; padding: 0; }
+.cricket-hero { order: -1; border-top: 0; border-bottom: 1px solid var(--border-glass); }
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .hud-nav .nav-num { display: none; }
+  .hud-nav .nav-btn { flex-shrink: 0; }
+}
