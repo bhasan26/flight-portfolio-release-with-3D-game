@@ -69,7 +69,7 @@ The production policy disallows inline script/style attributes and restricts for
 
 ## Search metadata and project pages
 
-The preferred production origin is `https://www.bhasan.online/`. The canonical, social metadata, structured data, `public/robots.txt`, and `public/sitemap.xml` use that origin. A host-scoped Vercel redirect consolidates `bilal-swe.vercel.app` onto the custom domain while preserving paths. Preview deployment hostnames remain available.
+The preferred production origin is `https://www.bhasan.online/`. The canonical, social metadata, structured data, `public/robots.txt`, and `public/sitemap.xml` use that origin. A host-scoped Vercel redirect is configured for `bilal-swe.vercel.app`, preserving paths and leaving preview hostnames available. Production verification on 2026-11-02 still returned HTTP 200 from the legacy host, so redirect enforcement remains pending in Vercel domain settings. The live pages on both hosts declare the custom-domain canonical.
 
 Static project pages live under `projects/` and are included as Vite HTML entry points. Each has a unique title, description, canonical, static project details, and links to the source repository and related projects. Add new pages to Vite's input list and the sitemap. Update sitemap `lastmod` only when page content materially changes.
 
